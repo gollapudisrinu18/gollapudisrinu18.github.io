@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    name: Project tests (6 labs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install flask pytest pyyaml cryptography opentelemetry-api
+      - name: Run each project's tests
+        run: |
+          for p in projects/*/; do
+            echo "::group::$p"
+            (cd "$p" && python -m pytest -q tests)
+            echo "::endgroup::"
+          done
+      - name: Run every demo
+        run: python tools/capture_demos.py
+
+  terraform:
+    name: Terraform fmt / validate / test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/02-azure-hub-spoke-terraform/envs/lab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - name: terraform fmt (advisory)
+        run: terraform fmt -check -recursive -diff ../..
+        continue-on-error: true
+      - run: terraform init -backend=false
+      - run: terraform validate
+      - run: terraform test
+
+  helm:
+    name: Helm lint and render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Lint and template every environment
+        working-directory: projects/01-aks-delivery-platform/helm/orders-api
+        run: |
+          helm lint .
+          for env in dev qa prod; do
+            helm template orders-api . -f env/values-$env.yaml > /tmp/$env.yaml
+            echo "$env: $(grep -c '^kind:' /tmp/$env.yaml) objects"
+          done
+
+  promtool:
+    name: Prometheus rule tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install promtool
+        run: |
+          curl -sSfL https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-amd64.tar.gz | tar xz
+          sudo mv prometheus-2.54.1.linux-amd64/promtool /usr/local/bin/
+      - working-directory: projects/03-aks-observability-sre-lab/prometheus
+        run: |
+          promtool check rules rules/slo-rules.yaml
+          promtool test rules tests/slo-rules.test.yaml
+
+  site:
+    name: Website, assistant and browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install jinja2 pytest playwright
+      - run: python site/build_site.py
+      - run: node --test tests/site/kb.test.js
+      - name: Browser tests (Chrome)
+        run: |
+          python -m http.server 8765 --directory _site &
+          sleep 1
+          SITE_URL=http://127.0.0.1:8765/ CHROME_PATH=$(which google-chrome) python -m pytest -q tests/site/test_browser.py

@@ -1,0 +1,37 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+Checkout gets slow but keeps returning 200. The SLO alert catches it, traces point to the cause, and a fallback restores service.
+
+2
+00:00:05.000 --> 00:00:10.000
+Architecture: Telemetry flow.
+
+3
+00:00:10.000 --> 00:00:15.000
+Architecture: Incident response sequence.
+
+4
+00:00:15.000 --> 00:00:20.000
+Baseline: steady traffic, no requests slower than 300 ms, burn rate 0x.
+
+5
+00:00:20.000 --> 00:00:25.000
+Fault injected in the inventory dependency. More than half of the requests miss the 300 ms objective and the burn rate passes the 14.4x paging threshold.
+
+6
+00:00:25.000 --> 00:00:30.000
+Slow-request span timings show inventory.lookup taking about 800 ms while payment and persistence stay normal.
+
+7
+00:00:30.000 --> 00:00:35.000
+The inventory cache fallback is enabled and the burn rate drops back to 0x.
+
+8
+00:00:35.000 --> 00:00:40.000
+Detected, diagnosed, mitigated and recovered.
+
+9
+00:00:40.000 --> 00:00:50.000
+Verified result. Source, tests and setup steps are linked below.

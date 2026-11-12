@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+Only images signed with the Key Vault key may run. A harmless unsigned image is turned away at admission.
+
+2
+00:00:05.000 --> 00:00:10.000
+Architecture: Pipeline and runtime view.
+
+3
+00:00:10.000 --> 00:00:15.000
+Architecture: Admission sequence.
+
+4
+00:00:15.000 --> 00:00:20.000
+An ECDSA P-256 signing key is created. In the pipeline this key lives in Azure Key Vault.
+
+5
+00:00:20.000 --> 00:00:25.000
+Two harmless synthetic images are built and identified by digest.
+
+6
+00:00:25.000 --> 00:00:30.000
+Only the release image is signed, and the signature verifies.
+
+7
+00:00:30.000 --> 00:00:35.000
+Admission decisions: the unsigned, tag-only and tampered images are rejected; the signed image is admitted.
+
+8
+00:00:35.000 --> 00:00:45.000
+Verified result. Source, tests and setup steps are linked below.

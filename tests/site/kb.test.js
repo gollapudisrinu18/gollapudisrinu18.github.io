@@ -1,0 +1,69 @@
+// node --test tests/site/kb.test.js   (run after `python site/build_site.py`)
+const test = require("node:test");
+const assert = require("node:assert");
+const path = require("node:path");
+const fs = require("node:fs");
+const KB = require("../../site/static/assets/js/kb.js");
+const data = JSON.parse(fs.readFileSync(path.join(__dirname, "../../_site/data/knowledge.json"), "utf8"));
+
+const cases = [
+  ["Tell me about Srinivasa", "about", "career"],
+  ["What is your Azure DevOps experience?", "azure-devops", "career"],
+  ["How does the AKS rollback work?", "how-aks-delivery-platform", "lab"],
+  ["Show me the SRE incident demo", "demo-aks-observability-sre-lab", "incident"],
+  ["Which projects are in the portfolio?", "projects", "meta"],
+  ["Is he available for remote work?", "availability", "career"],
+  ["Does he have SRE experience with on-call?", "sre", "career"],
+  ["Tell me about the Terraform hub and spoke project", "project-azure-hub-spoke-terraform", "lab"],
+  ["Show me the supply chain demo", "demo-azure-devsecops-supply-chain", "lab"],
+  ["Does he have any certifications?", "certifications", "meta"],
+  ["Is this real client code?", "synthetic", "meta"],
+];
+for (const [q, id, kind] of cases) {
+  test(`matches: ${q}`, () => {
+    const r = KB.answer(data, q, "en");
+    assert.strictEqual(r.id, id, `got ${r.id} (score ${r.score})`);
+    assert.strictEqual(r.kind, kind);
+    assert.ok(r.text.length > 20);
+  });
+}
+
+test("unknown question says information is unavailable", () => {
+  const r = KB.answer(data, "What is his favourite cricket team?", "en");
+  assert.strictEqual(r.matched, false);
+  assert.match(r.text, /don't have that information/);
+  assert.ok(r.suggestions.length >= 3);
+});
+
+test("Telugu question gets a Telugu answer", () => {
+  const r = KB.answer(data, "శ్రీనివాస గురించి చెప్పండి", "te");
+  assert.strictEqual(r.id, "about");
+  assert.strictEqual(r.lang, "te");
+  assert.match(r.text, /అనుభవం/);
+});
+
+test("Telugu rollback question", () => {
+  const r = KB.answer(data, "AKS రోల్‌బ్యాక్ ఎలా పనిచేస్తుంది", "te");
+  assert.strictEqual(r.id, "how-aks-delivery-platform");
+  assert.strictEqual(r.lang, "te");
+});
+
+test("Telugu mode falls back to English when no Telugu answer exists", () => {
+  const r = KB.answer(data, "education degree", "te");
+  assert.strictEqual(r.id, "education");
+  assert.strictEqual(r.lang, "en");
+  assert.strictEqual(r.fallbackToEnglish, true);
+});
+
+test("every link in the knowledge base points to a built page or https URL", () => {
+  for (const e of data.entries) for (const l of e.links) {
+    if (/^https:\/\//.test(l.href)) continue;
+    const file = path.join(__dirname, "../../_site", l.href.split("#")[0]);
+    assert.ok(fs.existsSync(file), `${e.id}: ${l.href}`);
+  }
+});
+
+test("no private contact details in the knowledge base", () => {
+  const s = JSON.stringify(data);
+  assert.ok(!/996657718|gollapudi\.srinu18@/.test(s));
+});

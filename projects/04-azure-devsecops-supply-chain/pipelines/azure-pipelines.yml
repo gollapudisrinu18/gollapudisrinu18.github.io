@@ -1,0 +1,133 @@
+# Secure supply chain: build -> scan -> SBOM -> sign -> verify -> deploy
+# The signing key never leaves Azure Key Vault (cosign azurekms:// provider).
+trigger:
+  branches:
+    include: [main]
+  paths:
+    include: [projects/04-azure-devsecops-supply-chain/*]
+
+variables:
+  - name: projectRoot
+    value: projects/04-azure-devsecops-supply-chain
+  - name: azureServiceConnection        # compile-time value
+    value: sc-supplychain
+  - name: imageRepo
+    value: supplychain/demo-app
+  - name: trivyVersion
+    value: 0.56.2
+  - name: cosignVersion
+    value: v2.4.1
+  - name: syftVersion
+    value: v1.14.0
+  # Variable group "supplychain": acrName, keyVaultName, signingKeyName, aksResourceGroup, aksClusterName
+  - group: supplychain
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildPush
+        steps:
+          - script: |
+              curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v$(trivyVersion)
+              trivy fs --scanners secret,misconfig --exit-code 1 --severity HIGH,CRITICAL $(projectRoot)/app
+            displayName: Secret and Dockerfile scan (Trivy fs)
+          - task: AzureCLI@2
+            displayName: Build and push image, capture digest
+            name: image
+            inputs:
+              azureSubscription: ${{ variables.azureServiceConnection }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                az acr login --name "$(acrName)"
+                LOGIN=$(az acr show -n "$(acrName)" --query loginServer -o tsv)
+                REF="$LOGIN/$(imageRepo):$(Build.BuildId)"
+                docker build -t "$REF" "$(projectRoot)/app"
+                docker push "$REF"
+                DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$REF")
+                echo "Image: $DIGEST"
+                echo "##vso[task.setvariable variable=ref;isOutput=true]$DIGEST"
+
+  - stage: Scan
+    dependsOn: Build
+    variables:
+      imageRef: $[ stageDependencies.Build.BuildPush.outputs['image.ref'] ]
+    jobs:
+      - job: TrivyAndSbom
+        steps:
+          - task: AzureCLI@2
+            displayName: Trivy image scan + SBOM (Syft)
+            inputs:
+              azureSubscription: ${{ variables.azureServiceConnection }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                az acr login --name "$(acrName)"
+                curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v$(trivyVersion)
+                curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin $(syftVersion)
+                # Fail on fixable HIGH/CRITICAL vulnerabilities
+                trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed \
+                  --ignorefile "$(projectRoot)/.trivyignore" "$(imageRef)"
+                syft "$(imageRef)" -o spdx-json=$(Build.ArtifactStagingDirectory)/sbom.spdx.json
+          - publish: $(Build.ArtifactStagingDirectory)/sbom.spdx.json
+            artifact: sbom
+
+  - stage: Sign
+    dependsOn: [Build, Scan]
+    variables:
+      imageRef: $[ stageDependencies.Build.BuildPush.outputs['image.ref'] ]
+    jobs:
+      - job: CosignSign
+        steps:
+          - download: current
+            artifact: sbom
+          - task: AzureCLI@2
+            displayName: cosign sign + attest SBOM with Key Vault key
+            inputs:
+              azureSubscription: ${{ variables.azureServiceConnection }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                set -euo pipefail
+                az acr login --name "$(acrName)"
+                curl -sSfL -o /usr/local/bin/cosign \
+                  https://github.com/sigstore/cosign/releases/download/$(cosignVersion)/cosign-linux-amd64
+                chmod +x /usr/local/bin/cosign
+                export AZURE_TENANT_ID=$tenantId AZURE_CLIENT_ID=$servicePrincipalId
+                export AZURE_FEDERATED_TOKEN_FILE=$(mktemp); echo -n "$idToken" > "$AZURE_FEDERATED_TOKEN_FILE"
+                KEY="azurekms://$(keyVaultName).vault.azure.net/$(signingKeyName)"
+                cosign sign --yes --tlog-upload=false --key "$KEY" "$(imageRef)"
+                cosign attest --yes --tlog-upload=false --key "$KEY" --type spdxjson \
+                  --predicate "$(Pipeline.Workspace)/sbom/sbom.spdx.json" "$(imageRef)"
+                cosign verify --insecure-ignore-tlog=true --key "$KEY" "$(imageRef)" > /dev/null
+                echo "Signed and verified $(imageRef)"
+
+  - stage: Deploy
+    dependsOn: [Build, Sign]
+    variables:
+      imageRef: $[ stageDependencies.Build.BuildPush.outputs['image.ref'] ]
+    jobs:
+      - deployment: AKS
+        environment: supplychain-prod
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: Deploy signed image (Kyverno enforces signatures)
+                  inputs:
+                    azureSubscription: ${{ variables.azureServiceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      az aks get-credentials -g "$(aksResourceGroup)" -n "$(aksClusterName)" --overwrite-existing
+                      sed "s#IMAGE_REF#$(imageRef)#" "$(projectRoot)/workload-identity/k8s/deployment.yaml" | kubectl apply -f -
+                      kubectl -n supplychain rollout status deploy/demo-app --timeout=180s

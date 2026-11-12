@@ -1,0 +1,94 @@
+# Orders API - multi-stage pipeline: test -> build/push to ACR -> Dev -> QA -> Prod
+# Approvals and checks are configured on the Azure DevOps Environments
+# (orders-dev, orders-qa, orders-prod). See docs/approvals.md.
+
+trigger:
+  branches:
+    include: [main]
+  paths:
+    include:
+      - projects/01-aks-delivery-platform/*
+
+pr:
+  branches:
+    include: [main]
+
+variables:
+  - name: projectRoot
+    value: projects/01-aks-delivery-platform
+  - name: imageRepository
+    value: orders-api
+  - name: imageTag
+    value: $(Build.BuildId)
+  # Service connection names must be known at compile time, so this one is
+  # set here rather than in the variable group.
+  - name: azureServiceConnection
+    value: sc-aks-delivery
+  # Define these in a variable group named "aks-delivery" (Library):
+  #   acrName, aksResourceGroup, aksClusterName
+  - group: aks-delivery
+
+stages:
+  - stage: Build
+    displayName: Test, build and push
+    jobs:
+      - template: templates/build.yml
+        parameters:
+          projectRoot: $(projectRoot)
+          azureServiceConnection: ${{ variables.azureServiceConnection }}
+          acrName: $(acrName)
+          imageRepository: $(imageRepository)
+          imageTag: $(imageTag)
+
+  - stage: Deploy_Dev
+    displayName: Deploy to Dev
+    dependsOn: Build
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - template: templates/deploy-aks.yml
+        parameters:
+          environmentName: orders-dev
+          namespace: orders-dev
+          valuesFile: env/values-dev.yaml
+          projectRoot: $(projectRoot)
+          azureServiceConnection: ${{ variables.azureServiceConnection }}
+          acrName: $(acrName)
+          aksResourceGroup: $(aksResourceGroup)
+          aksClusterName: $(aksClusterName)
+          imageRepository: $(imageRepository)
+          imageTag: $(imageTag)
+
+  - stage: Deploy_QA
+    displayName: Deploy to QA
+    dependsOn: Deploy_Dev
+    jobs:
+      - template: templates/deploy-aks.yml
+        parameters:
+          environmentName: orders-qa
+          namespace: orders-qa
+          valuesFile: env/values-qa.yaml
+          projectRoot: $(projectRoot)
+          azureServiceConnection: ${{ variables.azureServiceConnection }}
+          acrName: $(acrName)
+          aksResourceGroup: $(aksResourceGroup)
+          aksClusterName: $(aksClusterName)
+          imageRepository: $(imageRepository)
+          imageTag: $(imageTag)
+
+  - stage: Deploy_Prod
+    displayName: Deploy to Production
+    dependsOn: Deploy_QA
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - template: templates/deploy-aks.yml
+        parameters:
+          environmentName: orders-prod     # approval check configured here
+          namespace: orders-prod
+          valuesFile: env/values-prod.yaml
+          projectRoot: $(projectRoot)
+          azureServiceConnection: ${{ variables.azureServiceConnection }}
+          acrName: $(acrName)
+          aksResourceGroup: $(aksResourceGroup)
+          aksClusterName: $(aksClusterName)
+          imageRepository: $(imageRepository)
+          imageTag: $(imageTag)

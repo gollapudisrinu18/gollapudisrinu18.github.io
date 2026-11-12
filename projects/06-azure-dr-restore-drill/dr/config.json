@@ -1,0 +1,8 @@
+{
+  "service": "orders-archive (synthetic)",
+  "rto_target_minutes": 30,
+  "rpo_target_minutes": 60,
+  "backup_interval_minutes": 60,
+  "dataset_files": 20,
+  "records_per_file": 50
+}

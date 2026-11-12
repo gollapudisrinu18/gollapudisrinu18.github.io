@@ -1,0 +1,62 @@
+# Reusable deployment template: Helm upgrade, smoke test, automatic rollback.
+# The deployment job targets an Azure DevOps Environment so approvals and
+# checks configured on that Environment gate the stage.
+parameters:
+  - name: environmentName
+    type: string
+  - name: namespace
+    type: string
+  - name: valuesFile
+    type: string
+  - name: projectRoot
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: acrName
+    type: string
+  - name: aksResourceGroup
+    type: string
+  - name: aksClusterName
+    type: string
+  - name: imageRepository
+    type: string
+  - name: imageTag
+    type: string
+  - name: releaseName
+    type: string
+    default: orders-api
+
+jobs:
+  - deployment: Deploy
+    displayName: Helm deploy to ${{ parameters.environmentName }}
+    pool:
+      vmImage: ubuntu-latest
+    environment: ${{ parameters.environmentName }}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+            - task: HelmInstaller@1
+              inputs:
+                helmVersionToInstall: latest
+            - task: AzureCLI@2
+              displayName: Deploy, smoke test, roll back on failure
+              inputs:
+                azureSubscription: ${{ parameters.azureServiceConnection }}
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  set -euo pipefail
+                  az aks get-credentials \
+                    --resource-group "${{ parameters.aksResourceGroup }}" \
+                    --name "${{ parameters.aksClusterName }}" --overwrite-existing
+                  az aks install-cli --only-show-errors >/dev/null 2>&1 || true
+                  LOGIN_SERVER=$(az acr show --name "${{ parameters.acrName }}" --query loginServer -o tsv)
+                  bash "${{ parameters.projectRoot }}/scripts/deploy_with_rollback.sh" \
+                    --release "${{ parameters.releaseName }}" \
+                    --namespace "${{ parameters.namespace }}" \
+                    --chart "${{ parameters.projectRoot }}/helm/orders-api" \
+                    --values "${{ parameters.projectRoot }}/helm/orders-api/${{ parameters.valuesFile }}" \
+                    --image "$LOGIN_SERVER/${{ parameters.imageRepository }}" \
+                    --tag "${{ parameters.imageTag }}"

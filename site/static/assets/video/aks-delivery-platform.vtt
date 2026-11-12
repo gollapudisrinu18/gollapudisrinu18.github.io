@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+A bad release reaches the cluster. The smoke test catches it and the pipeline rolls back on its own.
+
+2
+00:00:05.000 --> 00:00:10.000
+Architecture: System view.
+
+3
+00:00:10.000 --> 00:00:15.000
+Architecture: Deployment, smoke test and rollback sequence.
+
+4
+00:00:15.000 --> 00:00:20.000
+Revision 1 deploys orders-api 1.0.0. All four smoke checks pass.
+
+5
+00:00:20.000 --> 00:00:25.000
+Revision 2 deploys 1.1.0 with a simulated defect. Probes stay green but the orders API returns HTTP 500, so the smoke test fails and the release is rolled back to revision 1.
+
+6
+00:00:25.000 --> 00:00:30.000
+The release history shows the rollback as revision 3, and /version confirms 1.0.0 is serving again.
+
+7
+00:00:30.000 --> 00:00:40.000
+Verified result. Source, tests and setup steps are linked below.

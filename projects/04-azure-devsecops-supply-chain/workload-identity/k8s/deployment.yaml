@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  namespace: supplychain
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: demo-app}
+  template:
+    metadata:
+      labels:
+        app: demo-app
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: demo-app
+      containers:
+        - name: app
+          image: IMAGE_REF            # replaced with the signed digest by the pipeline
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: kv-secrets
+              mountPath: /mnt/secrets
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+      volumes:
+        - name: kv-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: kv-demo-app

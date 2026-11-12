@@ -1,0 +1,40 @@
+# Kyverno policy: Pods may only run images from the supplychain repository in
+# ACR if they carry a valid Cosign signature from the Key Vault key.
+# Get the public key with:
+#   cosign public-key --key azurekms://<vault>.vault.azure.net/<key> > cosign.pub
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signatures
+  annotations:
+    policies.kyverno.io/title: Verify image signatures
+    policies.kyverno.io/description: Rejects unsigned or tampered images from the supplychain ACR repository.
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  background: false
+  rules:
+    - name: require-cosign-signature
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [supplychain]
+      verifyImages:
+        - imageReferences:
+            - "*.azurecr.io/supplychain/*"
+          mutateDigest: true
+          verifyDigest: true
+          required: true
+          attestors:
+            - count: 1
+              entries:
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      REPLACE_WITH_COSIGN_PUBLIC_KEY
+                      -----END PUBLIC KEY-----
+                    rekor:
+                      ignoreTlog: true
+                    ctlog:
+                      ignoreSCT: true

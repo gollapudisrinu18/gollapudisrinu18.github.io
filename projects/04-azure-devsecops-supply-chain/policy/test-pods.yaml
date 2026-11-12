@@ -1,0 +1,21 @@
+# Harmless test pods for the policy demo on AKS (replace digests).
+apiVersion: v1
+kind: Pod
+metadata:
+  name: unsigned-test
+  namespace: supplychain
+spec:
+  containers:
+    - name: app
+      image: <acr>.azurecr.io/supplychain/demo-app:unsigned-test
+      command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: signed-test
+  namespace: supplychain
+spec:
+  containers:
+    - name: app
+      image: <acr>.azurecr.io/supplychain/demo-app@sha256:<signed-digest>

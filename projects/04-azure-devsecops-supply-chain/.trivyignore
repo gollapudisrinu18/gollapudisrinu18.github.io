@@ -1,0 +1,3 @@
+# Accepted findings, one CVE per line with a reason and review date.
+# Example:
+# CVE-2024-00000  # not reachable: library unused at runtime, review 2026-12-31

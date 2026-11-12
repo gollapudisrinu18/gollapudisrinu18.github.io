@@ -1,0 +1,13 @@
+replicaCount: 3
+appEnv: prod
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 6
+resources:
+  requests:
+    cpu: 100m
+    memory: 96Mi
+  limits:
+    cpu: 500m
+    memory: 192Mi

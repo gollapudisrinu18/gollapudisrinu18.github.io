@@ -1,0 +1,55 @@
+# Reusable build template: unit tests, then build the image in ACR (az acr build)
+parameters:
+  - name: projectRoot
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: acrName
+    type: string
+  - name: imageRepository
+    type: string
+  - name: imageTag
+    type: string
+  - name: pythonVersion
+    type: string
+    default: "3.12"
+
+jobs:
+  - job: UnitTests
+    displayName: Unit tests
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: ${{ parameters.pythonVersion }}
+      - script: |
+          pip install -r ${{ parameters.projectRoot }}/app/requirements.txt pytest
+          python -m pytest ${{ parameters.projectRoot }}/tests --junitxml=$(Agent.TempDirectory)/test-results.xml
+        displayName: Run pytest
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: $(Agent.TempDirectory)/test-results.xml
+          testRunTitle: Orders API unit tests
+
+  - job: BuildImage
+    displayName: Build and push image to ACR
+    dependsOn: UnitTests
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: AzureCLI@2
+        displayName: az acr build
+        inputs:
+          azureSubscription: ${{ parameters.azureServiceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            set -euo pipefail
+            az acr build \
+              --registry "${{ parameters.acrName }}" \
+              --image "${{ parameters.imageRepository }}:${{ parameters.imageTag }}" \
+              --file "${{ parameters.projectRoot }}/app/Dockerfile" \
+              "${{ parameters.projectRoot }}/app"

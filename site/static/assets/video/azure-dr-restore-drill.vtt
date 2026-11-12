@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+Data is deleted on purpose, restored, and proven complete.
+
+2
+00:00:05.000 --> 00:00:10.000
+Architecture: Architecture.
+
+3
+00:00:10.000 --> 00:00:15.000
+A synthetic dataset is backed up; 37 more orders arrive after the backup.
+
+4
+00:00:15.000 --> 00:00:20.000
+The primary dataset is deleted and the integrity check fails.
+
+5
+00:00:20.000 --> 00:00:25.000
+The latest backup is restored and every file checksum matches the manifest.
+
+6
+00:00:25.000 --> 00:00:30.000
+RTO and RPO are measured against their targets and a drill report is written.
+
+7
+00:00:30.000 --> 00:00:40.000
+Verified result. Source, tests and setup steps are linked below.

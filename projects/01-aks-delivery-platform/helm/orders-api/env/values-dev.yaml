@@ -1,0 +1,4 @@
+replicaCount: 1
+appEnv: dev
+podDisruptionBudget:
+  enabled: false

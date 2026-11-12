@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+The same order arrives three times and is processed once.
+
+2
+00:00:05.000 --> 00:00:10.000
+Architecture: Architecture.
+
+3
+00:00:10.000 --> 00:00:15.000
+Duplicate delivery and a lost acknowledgement: two of three deliveries are recognised as duplicates.
+
+4
+00:00:15.000 --> 00:00:20.000
+Two transient 503 errors are retried; the third attempt succeeds.
+
+5
+00:00:20.000 --> 00:00:25.000
+A malformed message goes straight to the poison queue.
+
+6
+00:00:25.000 --> 00:00:30.000
+A message that fails on every attempt is moved to poison after five dequeues.
+
+7
+00:00:30.000 --> 00:00:35.000
+The ledger holds exactly one entry per order.
+
+8
+00:00:35.000 --> 00:00:45.000
+Verified result. Source, tests and setup steps are linked below.

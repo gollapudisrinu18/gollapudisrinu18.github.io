@@ -1,0 +1,70 @@
+# SLOs for checkout-api (30-day window)
+#   Latency:      99% of POST /api/checkout requests complete in <= 300 ms  (error budget 1%)
+#   Availability: 99.9% of POST /api/checkout requests return non-5xx       (error budget 0.1%)
+# Multi-window, multi-burn-rate alerts follow the Google SRE Workbook pattern.
+groups:
+  - name: checkout-slo-recording
+    interval: 30s
+    rules:
+      - record: slo:checkout_latency_bad:ratio_rate5m
+        expr: |
+          1 - (
+            sum(rate(http_request_duration_seconds_bucket{service="checkout-api",route="/api/checkout",le="0.3"}[5m]))
+            /
+            sum(rate(http_request_duration_seconds_count{service="checkout-api",route="/api/checkout"}[5m]))
+          )
+      - record: slo:checkout_latency_bad:ratio_rate30m
+        expr: |
+          1 - (
+            sum(rate(http_request_duration_seconds_bucket{service="checkout-api",route="/api/checkout",le="0.3"}[30m]))
+            /
+            sum(rate(http_request_duration_seconds_count{service="checkout-api",route="/api/checkout"}[30m]))
+          )
+      - record: slo:checkout_latency_bad:ratio_rate1h
+        expr: |
+          1 - (
+            sum(rate(http_request_duration_seconds_bucket{service="checkout-api",route="/api/checkout",le="0.3"}[1h]))
+            /
+            sum(rate(http_request_duration_seconds_count{service="checkout-api",route="/api/checkout"}[1h]))
+          )
+      - record: slo:checkout_latency_bad:ratio_rate6h
+        expr: |
+          1 - (
+            sum(rate(http_request_duration_seconds_bucket{service="checkout-api",route="/api/checkout",le="0.3"}[6h]))
+            /
+            sum(rate(http_request_duration_seconds_count{service="checkout-api",route="/api/checkout"}[6h]))
+          )
+      - record: slo:checkout_errors:ratio_rate5m
+        expr: |
+          sum(rate(http_requests_total{service="checkout-api",route="/api/checkout",code=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total{service="checkout-api",route="/api/checkout"}[5m]))
+
+  - name: checkout-slo-alerts
+    rules:
+      # 14.4x burn: 2% of the 30-day budget gone in 1 hour.
+      - alert: CheckoutLatencyBudgetFastBurn
+        expr: |
+          slo:checkout_latency_bad:ratio_rate1h > (14.4 * 0.01)
+          and
+          slo:checkout_latency_bad:ratio_rate5m > (14.4 * 0.01)
+        for: 2m
+        labels:
+          severity: page
+          slo: checkout-latency
+        annotations:
+          summary: checkout-api is burning its latency error budget 14.4x faster than allowed
+          runbook_url: https://github.com/gollapudisrinu18/my-profile/blob/main/projects/03-aks-observability-sre-lab/docs/runbook.md
+      # 6x burn: 5% of the budget gone in 6 hours.
+      - alert: CheckoutLatencyBudgetSlowBurn
+        expr: |
+          slo:checkout_latency_bad:ratio_rate6h > (6 * 0.01)
+          and
+          slo:checkout_latency_bad:ratio_rate30m > (6 * 0.01)
+        for: 15m
+        labels:
+          severity: ticket
+          slo: checkout-latency
+        annotations:
+          summary: checkout-api latency budget is burning 6x faster than allowed
+          runbook_url: https://github.com/gollapudisrinu18/my-profile/blob/main/projects/03-aks-observability-sre-lab/docs/runbook.md

@@ -1,0 +1,19 @@
+$ python dr/drill.py
+=== 1. Prepare synthetic dataset and scheduled backup ===
+  backup 20261112T105558Z: 20 files, 1000 records
+  37 orders written in the 45 min after the backup; primary now has 1037
+
+=== 2. Incident: primary dataset deleted ===
+  integrity check: FAILED (20 problems, e.g. missing orders-000.json)
+
+=== 3. Restore latest backup and verify ===
+  restored 20261112T105558Z in 0.00 s
+  checksum verification: PASS (20 files)
+  records restored: 1000 of 1037 (lost: 37)
+
+=== 4. Measured against targets ===
+  RTO 7.0 min (target 30) -> MET
+  RPO 45 min / 37 records (target 60 min) -> MET
+
+Wrote docs/drill-report.md
+DEMO RESULT: PASS - data restored, checksums verified, RTO and RPO met

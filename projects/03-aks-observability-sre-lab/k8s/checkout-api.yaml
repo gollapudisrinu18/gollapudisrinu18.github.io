@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-api
+  namespace: sre-lab
+  labels: {app: checkout-api}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: checkout-api}
+  template:
+    metadata:
+      labels: {app: checkout-api}
+    spec:
+      containers:
+        - name: checkout-api
+          image: <acr-name>.azurecr.io/checkout-api:1.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.sre-lab.svc.cluster.local:4317
+          readinessProbe:
+            httpGet: {path: /healthz, port: http}
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout-api
+  namespace: sre-lab
+  labels: {app: checkout-api}
+spec:
+  selector: {app: checkout-api}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

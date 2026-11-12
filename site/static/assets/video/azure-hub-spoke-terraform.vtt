@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.000
+A missing private DNS zone link sends traffic to the public endpoint. Terraform fixes it.
+
+2
+00:00:05.000 --> 00:00:10.000
+Architecture: Network view.
+
+3
+00:00:10.000 --> 00:00:15.000
+Architecture: Name resolution: broken vs fixed.
+
+4
+00:00:15.000 --> 00:00:20.000
+Broken state: the app spoke follows the public CNAME and gets a public IP, so the private endpoint is bypassed and storage returns 403.
+
+5
+00:00:20.000 --> 00:00:25.000
+The data spoke works. Comparing the two shows the privatelink.blob zone is linked to hub and data only.
+
+6
+00:00:25.000 --> 00:00:30.000
+Terraform adds the missing VNet link. The same lookup from the app spoke now returns the private endpoint IP.
+
+7
+00:00:30.000 --> 00:00:35.000
+The check expected a private answer and now passes.
+
+8
+00:00:35.000 --> 00:00:45.000
+Verified result. Source, tests and setup steps are linked below.

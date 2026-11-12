@@ -1,0 +1,12 @@
+{
+  "vnets": ["hub", "app", "data"],
+  "zones": {
+    "privatelink.blob.core.windows.net": {
+      "linked_vnets": ["hub", "data"],
+      "records": { "sthslabdemo01": "10.1.2.4" }
+    }
+  },
+  "public_cnames": {
+    "sthslabdemo01.blob.core.windows.net": "sthslabdemo01.privatelink.blob.core.windows.net"
+  }
+}

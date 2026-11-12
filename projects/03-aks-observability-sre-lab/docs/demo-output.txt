@@ -1,0 +1,20 @@
+$ python sim/live_incident_demo.py
+=== 1. Baseline: steady traffic ===
+  baseline   requests= 313  slower than 300ms=   0  bad ratio=  0.0%  burn rate=  0.0x  [ok]
+
+=== 2. Fault: inventory dependency slows down (800 ms on 60% of calls) ===
+  incident   requests=  47  slower than 300ms=  30  bad ratio= 63.8%  burn rate= 63.8x  [BREACH]
+  DETECTED: burn rate above 14.4x -> CheckoutLatencyBudgetFastBurn would page
+
+=== 3. Diagnose: slow-request span timings (exemplars) ===
+  859 ms total: inventory.lookup=818ms, order.persist=12ms, payment.authorize=28ms
+  857 ms total: inventory.lookup=820ms, order.persist=9ms, payment.authorize=28ms
+  858 ms total: inventory.lookup=818ms, order.persist=11ms, payment.authorize=28ms
+  Slowest span: inventory.lookup
+
+=== 4. Mitigate: enable inventory cache fallback ===
+  mitigated  requests= 401  slower than 300ms=   0  bad ratio=  0.0%  burn rate=  0.0x  [ok]
+
+=== Result ===
+  baseline 0.0x -> incident 63.8x -> after mitigation 0.0x
+DEMO RESULT: PASS - detected, diagnosed, mitigated and recovered

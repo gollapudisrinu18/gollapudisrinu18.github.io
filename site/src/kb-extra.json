@@ -1,0 +1,21 @@
+{
+  "unavailable": "I don't have that information in this portfolio. It covers Srinivasa's career history from his resume and six hands-on Azure labs. Try asking about his Azure DevOps or SRE experience, or one of the projects.",
+  "unavailable_te": "క్షమించండి, ఆ సమాచారం ఈ పోర్ట్‌ఫోలియోలో లేదు. ఇందులో శ్రీనివాస గారి రెజ్యూమ్‌లోని కెరీర్ వివరాలు మరియు ఆరు Azure ల్యాబ్‌లు మాత్రమే ఉన్నాయి.",
+  "samples": [
+    "Tell me about Srinivasa",
+    "What is your Azure DevOps experience?",
+    "How does the AKS rollback work?",
+    "Show me the SRE incident demo",
+    "Which projects are in the portfolio?",
+    "Is he available for remote work?"
+  ],
+  "te": {
+    "about": "శ్రీనివాస రావు గొల్లపూడి 11 సంవత్సరాలకు పైగా ఐటీ అనుభవం ఉన్న సీనియర్ Azure DevOps ఇంజినీర్ మరియు సైట్ రిలయబిలిటీ ఇంజినీర్ (SRE). ఆయన Linux, Windows Server అడ్మినిస్ట్రేషన్ నుండి Azure ఇన్‌ఫ్రాస్ట్రక్చర్, Azure DevOps CI/CD, AKS మరియు SRE పనుల వైపు ఎదిగారు. UK మరియు US లోని ఎంటర్‌ప్రైజ్ క్లయింట్ల కోసం పనిచేశారు.",
+    "azure-devops": "ఆయన Azure Pipelines లో multi-stage YAML పైప్‌లైన్‌లు, environment approvals, ACR image scanning మరియు AKS కి Helm deployments చేశారు. MITIE ప్రాజెక్ట్‌లో 10కి పైగా అప్లికేషన్‌ల release lead time ని రోజుల నుండి గంటలకు తగ్గించారు. LSEG కోసం 20కి పైగా మాడ్యూల్స్ CI/CD ప్లాట్‌ఫామ్‌ను నిర్వహించి, deployment శ్రమను 50% కంటే ఎక్కువ తగ్గించారు.",
+    "sre": "SRE లో ఆయన 24x7 on-call లో L3 escalation గా పనిచేశారు. అప్లికేషన్ టీమ్‌లతో కలిసి SLI, SLO మరియు error budgets నిర్వచించారు, blameless postmortems రాశారు, మరియు RTO/RPO లక్ష్యాలతో disaster recovery ప్లాన్‌లు సిద్ధం చేశారు.",
+    "projects": "ఈ పోర్ట్‌ఫోలియోలో ఆరు Azure ల్యాబ్‌లు ఉన్నాయి: AKS డెలివరీ ప్లాట్‌ఫామ్, Terraform తో hub-and-spoke నెట్‌వర్క్, observability మరియు SRE incident ల్యాబ్, DevSecOps సప్లై చైన్, Azure Functions event processing, మరియు disaster recovery డ్రిల్. ఇవన్నీ synthetic డేటాతో నిర్మించిన పోర్ట్‌ఫోలియో ల్యాబ్‌లు.",
+    "availability": "ఆయన వెంటనే జాయిన్ అవ్వగలరు. పూర్తిగా రిమోట్ ఉద్యోగాల కోసం మాత్రమే చూస్తున్నారు.",
+    "rollback": "ఇది పోర్ట్‌ఫోలియో ల్యాబ్ ఫలితం. ప్రతి deployment తర్వాత smoke test నడుస్తుంది. అది విఫలమైతే, స్క్రిప్ట్ ముందుగా నమోదు చేసిన Helm revision కి helm rollback చేసి, మళ్లీ smoke test తో పాత వెర్షన్ సరిగ్గా పనిచేస్తోందని ధృవీకరిస్తుంది. డెమోలో వెర్షన్ 1.1.0 విఫలమై, 1.0.0 కి తిరిగి వెళ్లింది.",
+    "incident-demo": "ఇది simulated incident. Inventory dependency నెమ్మదించడంతో checkout requests 300 ms కంటే ఎక్కువ సమయం తీసుకున్నాయి. Burn-rate alert 16 నిమిషాల్లో page చేసింది, traces లో inventory.lookup కారణమని తేలింది, cache fallback తో 27 నిమిషాల్లో సమస్య తగ్గింది."
+  }
+}

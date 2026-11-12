@@ -1,0 +1,15 @@
+# Scrape config for Azure Monitor managed service for Prometheus.
+# The ama-metrics add-on watches PodMonitor objects in the azmonitoring.coreos.com group.
+apiVersion: azmonitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: checkout-api
+  namespace: sre-lab
+spec:
+  selector:
+    matchLabels:
+      app: checkout-api
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

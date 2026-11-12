@@ -1,0 +1,19 @@
+$ python admission/demo.py
+=== 1. Generate signing key (ECDSA P-256) ===
+  public key fingerprint: sha256:05ae351fc39bad32...
+
+=== 2. Build two harmless test images ===
+  acrportfolio.azurecr.io/supplychain/demo-app@sha256:1099df7c5fb8...  (will be signed)
+  acrportfolio.azurecr.io/supplychain/demo-app@sha256:bb041240ec25...  (not signed)
+
+=== 3. Sign the release image ===
+  cosign-style verify: Verified OK
+
+=== 4. Admission decisions ===
+  unsigned-pod     -> REJECTED: acrportfolio.azurecr.io/supplychain/demo-app@sha256:bb041240ec25...: no signature found - image is unsigned
+  signed-pod       -> ADMITTED: signature verified for all protected images
+  tag-only-pod     -> REJECTED: acrportfolio.azurecr.io/supplychain/demo-app:1.0.0: protected images must be referenced by digest (@sha256:...)
+  tampered-pod     -> REJECTED: acrportfolio.azurecr.io/supplychain/demo-app@sha256:8c42834369d1...: signature was made for a different digest
+  unprotected-pod  -> ADMITTED: no images from protected registries
+
+DEMO RESULT: PASS - unsigned image rejected, signed image admitted

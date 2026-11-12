@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ p.title }} · {{ profile.name }}{% endblock %}
+{% block description %}{{ p.short }}{% endblock %}
+{% block main %}
+<div class="wrap">
+  <div class="case-hero">
+    <p class="breadcrumb"><a href="{{ root }}index.html#projects">Projects</a> / {{ 'Flagship' if p.tier == 'flagship' else 'Supporting' }}</p>
+    <h1>{{ p.title }}</h1>
+    <p class="lead">{{ p.short }}</p>
+    <ul class="chips" aria-label="Technologies">{% for s in p.stack %}<li class="chip">{{ s }}</li>{% endfor %}</ul>
+    <div class="case-links">
+      <a class="btn primary" href="{{ root }}demos/{{ p.slug }}.html">▶ Watch the demo</a>
+      <a class="btn" href="{{ p.links.source }}">Source code</a>
+      <a class="btn" href="{{ p.links.architecture }}">Architecture doc</a>
+      <a class="btn" href="{{ p.links.issues_doc }}">Issue backlog</a>
+      <a class="btn ghost" href="{{ p.links.issues }}">GitHub issues</a>
+    </div>
+  </div>
+  <div class="case-body">
+    <p class="notice">Portfolio lab built for this site: synthetic application, data and incidents. No employer code or client details.</p>
+    <section aria-labelledby="problem-h">
+      <h2 id="problem-h">Problem</h2>
+      <p>{{ p.problem }}</p>
+    </section>
+    <section id="architecture" aria-labelledby="arch-h">
+      <h2 id="arch-h">Architecture</h2>
+      {% for d in p.diagrams %}
+      <figure class="diagram" style="margin:0 0 1.2rem">
+        <span class="hint">Scroll sideways to see the whole diagram, or <a href="{{ root }}assets/diagrams/{{ d.file }}">open it full size</a>.</span>
+        <img src="{{ root }}assets/diagrams/{{ d.file }}" alt="{{ d.title }} diagram for {{ p.title }}" loading="lazy">
+        <figcaption>{{ d.title }} · <a href="{{ root }}assets/diagrams/{{ d.file }}">Open full size</a></figcaption>
+        <details class="source"><summary>Mermaid source</summary><pre class="term"><code>{{ d.source }}</code></pre></details>
+      </figure>
+      {% endfor %}
+    </section>
+    <section aria-labelledby="built-h">
+      <h2 id="built-h">What I built</h2>
+      <ul>{% for b in p.built %}<li>{{ b }}</li>{% endfor %}</ul>
+    </section>
+    <section aria-labelledby="demo-h">
+      <h2 id="demo-h">Demo</h2>
+      {% if p.video %}
+      <div class="video-frame">
+        <video controls preload="metadata" playsinline aria-describedby="video-desc">
+          <source src="{{ root }}assets/video/{{ p.slug }}.mp4" type="video/mp4">
+          {% if p.vtt %}<track kind="captions" src="{{ root }}assets/video/{{ p.slug }}.vtt" srclang="en" label="English" default>{% endif %}
+        </video>
+      </div>
+      <p id="video-desc" class="privacy">Screen recording of the captioned walkthrough (MP4). <a href="{{ root }}demos/{{ p.slug }}.html">Open the interactive walkthrough</a>.</p>
+      {% else %}
+      <p><a class="btn primary" href="{{ root }}demos/{{ p.slug }}.html">▶ Open the captioned walkthrough</a></p>
+      {% endif %}
+    </section>
+    <section aria-labelledby="result-h">
+      <h2 id="result-h">Verified result</h2>
+      <p class="result">{{ p.result }}</p>
+      <details class="source" open>
+        <summary>Output from a real run of <code>{{ p.run }}</code></summary>
+        {% for sec in p.sections %}<pre class="term" style="margin-top:.8rem"><span class="head">=== {{ sec.title }} ===</span>
+{{ sec.html | safe }}</pre>{% endfor %}
+      </details>
+    </section>
+    <section aria-labelledby="run-h">
+      <h2 id="run-h">Run it</h2>
+      <pre class="term"><code>git clone {{ cfg.repo_url }}.git
+cd {{ cfg.repo }}/projects/{{ p.dir }}
+{{ p.run }}</code></pre>
+      <p style="margin-top:.8rem">Setup, Azure prerequisites, billable resources, troubleshooting and cleanup are in the <a href="{{ p.links.readme }}">project README</a>.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

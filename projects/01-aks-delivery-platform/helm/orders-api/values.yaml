@@ -1,0 +1,50 @@
+# Default values. Environment overrides live in env/values-<env>.yaml
+replicaCount: 2
+
+image:
+  repository: myacr.azurecr.io/orders-api   # overridden by the pipeline
+  tag: "1.0.0"                              # overridden by the pipeline (Build.BuildId)
+  pullPolicy: IfNotPresent
+
+appEnv: dev
+releaseDefect: false   # demo switch only: true simulates a bad release
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: webapprouting.kubernetes.azure.com   # AKS application routing add-on
+  host: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]

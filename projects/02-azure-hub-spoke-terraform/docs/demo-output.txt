@@ -1,0 +1,30 @@
+$ python tools/dns_incident_demo.py
+
+=== 1. Broken state: terraform apply -var-file=misconfig.tfvars ===
+Symptom reported: app in spoke 'app' gets HTTP 403 AuthorizationFailure from blob storage
+Resolving sthslabdemo01.blob.core.windows.net from VNet 'app'
+  sthslabdemo01.blob.core.windows.net -> CNAME sthslabdemo01.privatelink.blob.core.windows.net (public DNS)
+  zone privatelink.blob.core.windows.net is NOT linked to VNet 'app'; Azure DNS falls back to public resolution
+  sthslabdemo01.privatelink.blob.core.windows.net -> A 20.60.0.10 (public endpoint)
+RESULT: public IP 20.60.0.10 - private endpoint bypassed; storage has public access disabled, so requests fail with HTTP 403
+CHECK: expected private -> FAIL
+
+=== 2. Diagnose: compare with a VNet that works ===
+Resolving sthslabdemo01.blob.core.windows.net from VNet 'data'
+  sthslabdemo01.blob.core.windows.net -> CNAME sthslabdemo01.privatelink.blob.core.windows.net (public DNS)
+  sthslabdemo01.privatelink.blob.core.windows.net -> A 10.1.2.4 (private zone privatelink.blob.core.windows.net, linked to 'data')
+RESULT: private endpoint 10.1.2.4 - traffic stays on the VNet
+
+Diagnosis: the privatelink.blob zone has links for hub and data only.
+On Azure: az network private-dns link vnet list -g rg-hslab-network -z privatelink.blob.core.windows.net -o table
+
+=== 3. Fix: link the app spoke (terraform apply without misconfig.tfvars) ===
+  + module.blob_dns.azurerm_private_dns_zone_virtual_network_link.this["app"]
+Resolving sthslabdemo01.blob.core.windows.net from VNet 'app'
+  sthslabdemo01.blob.core.windows.net -> CNAME sthslabdemo01.privatelink.blob.core.windows.net (public DNS)
+  sthslabdemo01.privatelink.blob.core.windows.net -> A 10.1.2.4 (private zone privatelink.blob.core.windows.net, linked to 'app')
+RESULT: private endpoint 10.1.2.4 - traffic stays on the VNet
+CHECK: expected private -> PASS
+
+=== Result ===
+DEMO RESULT: PASS - app spoke now resolves the private endpoint

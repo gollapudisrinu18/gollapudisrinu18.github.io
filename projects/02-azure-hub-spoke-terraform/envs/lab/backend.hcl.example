@@ -1,0 +1,5 @@
+resource_group_name  = "rg-tfstate-lab"
+storage_account_name = "sttfstate<unique>"
+container_name       = "tfstate"
+key                  = "hub-spoke-lab.tfstate"
+use_azuread_auth     = true

@@ -1,0 +1,26 @@
+$ python src/local_runtime.py
+=== Scenario 1: duplicate delivery (same event sent twice + lost ack) ===
+  msg 6b7fc6d0 try 1: processed
+  msg 6b7fc6d0: ack lost -> queue redelivers it
+  msg 8e7831d3 try 1: duplicate
+  msg 6b7fc6d0 try 2: duplicate
+
+=== Scenario 2: transient downstream failure (2 x HTTP 503) ===
+  msg b560e25d try 1: ledger service returned 503 -> retry
+  msg b560e25d try 2: ledger service returned 503 -> retry
+  msg b560e25d try 3: processed
+
+=== Scenario 3: malformed message ===
+  msg e14c86bd try 1: permanent error (missing fields: eventId, amount, currency) -> poison
+
+=== Scenario 4: downstream down for every attempt ===
+  msg 96a67ef5 try 1: ledger service returned 503 -> retry
+  msg 96a67ef5 try 2: ledger service returned 503 -> retry
+  msg 96a67ef5 try 3: ledger service returned 503 -> retry
+  msg 96a67ef5 try 4: ledger service returned 503 -> retry
+  msg 96a67ef5 try 5: ledger service returned 503 -> maxDequeueCount reached -> poison
+
+=== Result ===
+  ledger entries: [('ORD-1', 499.0, 'INR'), ('ORD-2', 1250.0, 'INR')]
+  poison queue:   [('e14c86bd', 'missing fields: eventId, amount, currency'), ('96a67ef5', 'ledger service returned 503')]
+DEMO RESULT: PASS - ORD-1 processed exactly once despite 3 deliveries

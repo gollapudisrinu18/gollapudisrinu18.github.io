@@ -1,0 +1,41 @@
+{
+  "slo": "99% of POST /api/checkout <= 300 ms over 30 days",
+  "requests_per_minute": 6000,
+  "time_to_detect_min": 16,
+  "time_to_mitigate_min": 27,
+  "peak_burn_rate_5m": 59.1,
+  "bad_requests": 93959,
+  "error_budget_consumed": 0.0362,
+  "timeline": [
+    {
+      "minute": 60,
+      "t_plus_min": 0,
+      "event": "Latency rises: 58% of checkouts slower than 300 ms"
+    },
+    {
+      "minute": 76,
+      "t_plus_min": 16,
+      "event": "CheckoutLatencyBudgetFastBurn fires (1h and 5m burn > 14.4x for 2m) - on-call paged"
+    },
+    {
+      "minute": 82,
+      "t_plus_min": 22,
+      "event": "Slow-request exemplars show inventory.lookup ~800 ms; payment and persist normal"
+    },
+    {
+      "minute": 87,
+      "t_plus_min": 27,
+      "event": "Mitigation: inventory cache fallback enabled"
+    },
+    {
+      "minute": 90,
+      "t_plus_min": 30,
+      "event": "Page alert resolves (5m burn drops below 14.4x)"
+    },
+    {
+      "minute": 91,
+      "t_plus_min": 31,
+      "event": "5-minute bad ratio back under 1% - user impact over"
+    }
+  ]
+}
