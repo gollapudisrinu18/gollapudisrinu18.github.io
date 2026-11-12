@@ -1,14 +1,14 @@
 {
-  "welcome": "Hi, I’m Srinivasa’s portfolio assistant. Would you like to see his Azure DevOps and SRE experience, explore a project, or ask me a question?",
+  "welcome": "Welcome to Srinivasa’s portfolio. Explore his Azure DevOps and SRE experience, view his resume, or take a short tour of the project architectures.",
   "unavailable": "I don't have that information in this portfolio. It covers Srinivasa's career history from his resume and six hands-on Azure labs. Try asking about his Azure DevOps or SRE experience, or one of the projects.",
   "unavailable_te": "క్షమించండి, ఆ సమాచారం ఈ పోర్ట్‌ఫోలియోలో లేదు. ఇందులో శ్రీనివాస గారి రెజ్యూమ్‌లోని కెరీర్ వివరాలు మరియు ఆరు Azure ల్యాబ్‌లు మాత్రమే ఉన్నాయి.",
   "samples": [
     "What Azure DevOps work has Srinivasa done in production?",
+    "How is the delivery pipeline designed?",
     "How does the AKS rollback work?",
     "Show me the SRE incident demo",
-    "Tell me about Srinivasa",
-    "Which projects are in the portfolio?",
-    "Is he available for remote work?"
+    "Is he available for remote work?",
+    "Can I view his resume?"
   ],
   "te": {
     "about": "శ్రీనివాస రావు గొల్లపూడి 11 సంవత్సరాలకు పైగా ఐటీ అనుభవం ఉన్న సీనియర్ Azure DevOps ఇంజినీర్ మరియు సైట్ రిలయబిలిటీ ఇంజినీర్ (SRE). ఆయన Linux, Windows Server అడ్మినిస్ట్రేషన్ నుండి Azure ఇన్‌ఫ్రాస్ట్రక్చర్, Azure DevOps CI/CD, AKS మరియు SRE పనుల వైపు ఎదిగారు. UK మరియు US లోని ఎంటర్‌ప్రైజ్ క్లయింట్ల కోసం పనిచేశారు.",
@@ -19,6 +19,7 @@
     "rollback": "ఇది పోర్ట్‌ఫోలియో ల్యాబ్ ఫలితం. ప్రతి deployment తర్వాత smoke test నడుస్తుంది. అది విఫలమైతే, స్క్రిప్ట్ ముందుగా నమోదు చేసిన Helm revision కి helm rollback చేసి, మళ్లీ smoke test తో పాత వెర్షన్ సరిగ్గా పనిచేస్తోందని ధృవీకరిస్తుంది. డెమోలో వెర్షన్ 1.1.0 విఫలమై, 1.0.0 కి తిరిగి వెళ్లింది.",
     "incident-demo": "ఇది simulated incident. Inventory dependency నెమ్మదించడంతో checkout requests 300 ms కంటే ఎక్కువ సమయం తీసుకున్నాయి. Burn-rate alert 16 నిమిషాల్లో page చేసింది, traces లో inventory.lookup కారణమని తేలింది, cache fallback తో 27 నిమిషాల్లో సమస్య తగ్గింది.",
     "lab-aks": "పోర్ట్‌ఫోలియో ల్యాబ్ (synthetic): AKS Delivery Platform ల్యాబ్‌లో ఒకే image ని Dev → QA → Prod కి approval gate తో promote చేస్తారు. డెమోలో 1.1.0 smoke test లో విఫలమై, pipeline 1.0.0 ని తిరిగి తెస్తుంది.",
-    "lab-sre": "పోర్ట్‌ఫోలియో ల్యాబ్ (simulated incident): 14.4x burn-rate alert నుండి traces తో investigation, cache fallback mitigation మరియు blameless postmortem వరకు చూపిస్తుంది."
+    "lab-sre": "పోర్ట్‌ఫోలియో ల్యాబ్ (simulated incident): 14.4x burn-rate alert నుండి traces తో investigation, cache fallback mitigation మరియు blameless postmortem వరకు చూపిస్తుంది.",
+    "delivery-arch": "ఇది పోర్ట్‌ఫోలియో ల్యాబ్. Azure Pipelines లో pytest తో validate చేసి, ACR లో ఒకే image ని build చేస్తారు. అదే image ని AKS లోని dev, qa, prod namespaces కి Helm తో promote చేస్తారు; Production కి ముందు approval అవసరం. ప్రతి deployment తర్వాత smoke test నడుస్తుంది, విఫలమైతే ముందు Helm revision కి rollback అవుతుంది."
   }
 }

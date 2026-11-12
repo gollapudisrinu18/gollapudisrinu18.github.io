@@ -1,16 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Demo: {{ p.title }} · {{ profile.name }}{% endblock %}
-{% block description %}Captioned walkthrough: {{ p.demo.intro }}{% endblock %}
+{% block title %}Interactive walkthrough: {{ p.title }} · {{ profile.name }}{% endblock %}
+{% block description %}Interactive walkthrough: {{ p.demo.intro }}{% endblock %}
 {% block main %}
 <div class="wrap walk">
-  <p class="breadcrumb"><a href="{{ root }}index.html#projects">Projects</a> / <a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a> / Demo</p>
-  <h1 style="font-size:clamp(1.5rem,3vw,2.1rem);margin:.4rem 0 .2rem">{{ p.title }}</h1>
-  <p class="privacy" style="margin-bottom:1rem"><span class="badge">Captioned browser walkthrough</span> Real output from <code>{{ p.run }}</code>. Use ← → keys or the buttons.</p>
+  <p class="breadcrumb"><a href="{{ root }}index.html#projects">Projects</a> / <a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a> / Interactive walkthrough</p>
+  <h1 class="walk-title">Interactive walkthrough: {{ p.title }}</h1>
+  <p class="muted walk-note"><span class="lab-tag">Portfolio lab</span> Scenes use the real output of <code>{{ p.run }}</code>, run locally. Use the ← → keys or the buttons.</p>
   <div class="stage" data-walkthrough>
-    <div class="stage-head"><strong data-title="{{ p.title }}">Demo</strong><span class="count" aria-live="polite"></span></div>
+    <div class="stage-head"><strong data-title="{{ p.title }}">Interactive walkthrough</strong><span class="count" aria-live="polite"></span></div>
     <div class="scene title-scene" data-caption="{{ p.demo.intro }}">
-      <span class="badge {{ 'teal' if p.tier == 'supporting' else '' }}">{{ 'Flagship project' if p.tier == 'flagship' else 'Supporting project' }}</span>
-      <h2 style="margin-top:.8rem">{{ p.title }}</h2>
+      <h2>{{ p.title }}</h2>
       <p>{{ p.problem }}</p>
     </div>
     {% for d in p.diagrams %}
@@ -25,8 +24,7 @@
     </div>
     {% endfor %}
     <div class="scene title-scene" data-caption="Verified result. Source, tests and setup steps are linked below.">
-      <span class="badge teal">Verified result</span>
-      <h2 style="margin-top:.8rem">Result</h2>
+      <h2>Verified result</h2>
       <p>{{ p.result }}</p>
     </div>
     <div class="caption" aria-live="polite"></div>
@@ -38,9 +36,8 @@
     </div>
   </div>
   <div class="case-links">
-    <a class="btn" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
-    <a class="btn" href="{{ p.links.source }}">Source code</a>
-    <a class="btn ghost" href="{{ p.links.issues_doc }}">Issue backlog</a>
+    <a class="btn primary" href="{{ root }}projects/{{ p.slug }}.html">Read the case study</a>
+    <a class="btn ghost" href="{{ p.links.source }}">Source code on GitHub</a>
   </div>
 </div>
 {% endblock %}

@@ -28,14 +28,31 @@ test("production question separates work experience from the lab", () => {
   assert.ok(r.labNote, "has a lab section");
   assert.match(r.labNote.text, /^Portfolio lab/);
   assert.deepStrictEqual(r.labNote.links.map(l => l.href),
-    ["projects/aks-delivery-platform.html", "demos/aks-delivery-platform.html"]);
+    ["projects/aks-delivery-platform.html", "index.html#arch-delivery", "demos/aks-delivery-platform.html"]);
 });
 
-test("first three sample questions", () => {
-  assert.deepStrictEqual(data.samples.slice(0, 3), [
+test("suggested questions cover experience, delivery, rollback, incident and availability", () => {
+  assert.deepStrictEqual(data.samples.slice(0, 5), [
     "What Azure DevOps work has Srinivasa done in production?",
+    "How is the delivery pipeline designed?",
     "How does the AKS rollback work?",
-    "Show me the SRE incident demo"]);
+    "Show me the SRE incident demo",
+    "Is he available for remote work?"]);
+});
+
+test("architecture and resume questions link to the right pages", () => {
+  const d = KB.answer(data, "How is the delivery pipeline designed?", "en");
+  assert.strictEqual(d.id, "delivery-architecture");
+  assert.ok(d.links.some(l => l.href === "index.html#arch-delivery"));
+  const r = KB.answer(data, "Can I view his resume?", "en");
+  assert.strictEqual(r.id, "resume");
+  const hasResume = fs.existsSync(path.join(__dirname, "../../_site/resume.html"));
+  assert.strictEqual(r.links.some(l => l.href === "resume.html"), hasResume);
+  assert.ok(!/use the contact information on his resume/i.test(JSON.stringify(data)), "no dead-end resume answers");
+});
+
+test("hub-and-spoke question finds the Terraform lab", () => {
+  assert.strictEqual(KB.answer(data, "How is the hub and spoke network built?", "en").id, "project-azure-hub-spoke-terraform");
 });
 for (const [q, id, kind] of cases) {
   test(`matches: ${q}`, () => {

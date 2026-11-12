@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Resume · {{ profile.name }}{% endblock %}
+{% block description %}Resume of {{ profile.name }}, {{ profile.headline }}.{% endblock %}
+{% block main %}
+<div class="wrap resume-wrap">
+  <article class="resume" aria-labelledby="resume-name">
+    <header class="resume-head">
+      <h1 id="resume-name">{{ resume.name }}</h1>
+      {% if resume.title %}<p class="resume-title">{{ resume.title }}</p>{% endif %}
+      <ul class="resume-contact">
+        {% for c in resume.contact %}<li>{% if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% else %}{{ c.text }}{% endif %}</li>{% endfor %}
+        <li><span class="k">Portfolio:</span> <a href="{{ cfg.pages_url }}">{{ cfg.pages_url }}</a></li>
+      </ul>
+    </header>
+    {% for sec in resume.sections %}
+    <section aria-labelledby="rs-{{ loop.index }}">
+      <h2 id="rs-{{ loop.index }}">{{ sec.heading }}</h2>
+      {% for b in sec.blocks %}
+        {% if b.type == 'p' %}<p>{{ b.text }}</p>
+        {% elif b.type == 'ul' %}<ul>{% for i in b['items'] %}<li>{{ i }}</li>{% endfor %}</ul>
+        {% elif b.type == 'skills' %}<dl class="skills">{% for row in b.rows %}<div><dt>{{ row[0] }}</dt><dd>{{ row[1] }}</dd></div>{% endfor %}</dl>
+        {% elif b.type == 'role' %}
+        <div class="resume-role">
+          <div class="role-head"><h3>{{ b.title }}</h3>{% if b.dates %}<span class="dates">{{ b.dates }}</span>{% endif %}</div>
+          {% if b.org %}<p class="org">{{ b.org }}</p>{% endif %}
+          {% if b['items'] %}<ul>{% for i in b['items'] %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </article>
+</div>
+{% endblock %}

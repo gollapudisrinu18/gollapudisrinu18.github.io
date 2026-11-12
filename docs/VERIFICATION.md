@@ -33,19 +33,21 @@ Checked in the build workspace on 12 Nov 2026 (Python 3.13, Node 22, Chrome, Pla
 - Speaking into a real microphone and hearing real audio output. The sandbox has no microphone or speakers. The browser speech APIs were exercised with controlled stand-ins, plus one real-API permission-denied run.
 - Whether a given recruiter's browser has a Telugu voice installed. The site detects this and falls back to text.
 
-## Recruiter-first homepage update (12 Nov 2026)
+## Portfolio redesign (12 Nov 2026)
 
 | Check | Result |
 |---|---|
-| Hero | Headline kept; two-sentence intro; impact tiles labelled as professional experience; Immediate joiner, Remote only, Bangalore visible |
-| Resume / LinkedIn / Email | Not configured: no approved public PDF or verified URLs in the repo, so the links are hidden and View Projects is the primary action. Set them in `site/config.json` → `contact`; invalid or missing values are dropped at build time (`tests/site/test_build_contact.py`) |
-| Lead case studies | AKS Delivery Platform first, SRE Incident Lab second; built/verify text checked against demo output and postmortem; all six case study and demo links present |
-| Voice welcome (Chrome, Playwright, speech stand-ins) | Visible on load; nothing spoken before interaction; spoken once on first eligible click; not repeated after visiting a project page and returning; Play welcome replays; Stop and Mute end playback; muted stays muted on reload; blocked audio and no speech support keep the greeting visible with a message; never creates a SpeechRecognition |
-| Ask My Portfolio | Typing first (Ask is primary, Voice optional); three requested sample questions first; production answer separates work experience from the portfolio lab and links the case study and demo |
-| Layout | 1366 px and 390 px, light and dark; welcome card does not overlap hero buttons on mobile; no horizontal scroll |
-| Tests | Node 20/20, contact 3/3, browser 30/30 |
+| Navigation | Experience, Projects, Architecture, Resume (when `site/src/resume.json` exists), Ask |
+| Hero | Name, role, two-sentence intro, availability; View Projects, View Resume (when available), Start Portfolio Tour; no Download Resume, no LinkedIn |
+| Outcomes | 10+ applications to AKS, days → hours lead time, ~45% fewer false-positive alerts; all three checked against the MITIE (Teknip Technology) role in `content.json` and labelled as professional experience |
+| Architecture overview | Delivery, infrastructure and reliability SVGs from `site/diagrams.py`; relationships checked against `pipelines/`, `scripts/deploy_with_rollback.sh`, `envs/lab/main.tf` (NSGs per spoke, private-endpoint NSG, DNS links to hub/app/data, storage public access off) and the SLO rules/postmortem; tabs with keyboard support and deep links (`#arch-delivery` etc.) |
+| Case studies | All six use the same sections; scope table marks each part as Ran locally, Simulation, Checked in CI or Not yet run on Azure; no Azure deployment results are claimed |
+| Walkthroughs | Scene-based pages are labelled Interactive walkthrough; MP4 recordings (all six exist) are labelled Recorded demo |
+| Voice | Speech failure investigated in Chrome 157 on Windows (3 local Microsoft voices, 3 network Google voices, no Telugu voice): default, local, network voices and cancel-then-speak all played after a click. Hardened anyway in `speech.js`: local voices preferred, sentence-by-sentence speech (avoids Chrome's ~15 s cut-off on network voices), wait for voices, keep utterances referenced, retry once on failure, watchdog for silent failure, cancel on `pagehide`, friendly messages with no error codes |
+| Tour | Next/Back/Stop/Mute, captions, highlights and switches the matching diagram, no overlapping narration, Escape stops, works muted and without speech support; welcome attempted once per tab session; microphone never created |
+| Tests | Node 22/22, browser 32/32 (Chrome, Playwright, speech stand-ins for blocked, failing, silent and missing speech) |
 
-Not verifiable here: real speaker output, and real browser autoplay policy on Safari and Firefox (stand-ins exercised the blocked path).
+Not verifiable here: real speaker output, Safari/Firefox autoplay behaviour, and the resume page (waiting for the approved resume).
 
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.

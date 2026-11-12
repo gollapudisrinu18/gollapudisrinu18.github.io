@@ -1,88 +1,72 @@
 {% extends "base.html" %}
 {% block main %}
-{% set contact = cfg.contact %}
-<section class="hero">
+<section class="hero" aria-labelledby="hero-name">
   <div class="wrap hero-grid">
     <div class="hero-main">
-      <p class="eyebrow">Azure DevOps · Site Reliability Engineering</p>
-      <h1>{{ profile.name }}</h1>
+      <h1 id="hero-name">{{ profile.name }}</h1>
       <p class="headline">{{ profile.headline }}</p>
       <p class="lead">{{ profile.intro }}</p>
-      <div class="impact" role="group" aria-labelledby="impact-h">
-        <p class="impact-label" id="impact-h">Impact · professional experience</p>
-        <ul class="impact-tiles">
-          {% for item in profile.impact %}<li class="impact-tile"><span class="sr-only">{{ item.text }}</span><span aria-hidden="true"><strong>{{ item.figure }}</strong><span>{{ item.label }}</span></span></li>{% endfor %}
-        </ul>
-      </div>
-      <ul class="facts">
+      <ul class="facts" aria-label="Availability">
         <li>11+ years in IT</li>
         <li>Immediate joiner</li>
         <li>Remote only</li>
         <li>{{ profile.location }}</li>
       </ul>
       <div class="cta">
-        {% if contact.resume_pdf %}
-        <a class="btn primary" href="{{ root }}{{ contact.resume_pdf }}" download data-cta="resume">⬇ Download Resume</a>
-        <a class="btn" href="#projects" data-cta="projects">View Projects</a>
-        {% else %}
         <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
-        {% endif %}
-        <a class="btn ghost" href="{{ cfg.repo_url }}">GitHub repository</a>
+        {% if resume %}<a class="btn primary-alt" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
+        <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
       </div>
-      {% if contact.linkedin_url or contact.email %}
-      <ul class="contact-links" aria-label="Contact">
-        {% if contact.linkedin_url %}<li><a href="{{ contact.linkedin_url }}" rel="me noopener" data-contact="linkedin">LinkedIn profile</a></li>{% endif %}
-        {% if contact.email %}<li><a href="mailto:{{ contact.email }}" data-contact="email">Email: {{ contact.email }}</a></li>{% endif %}
-      </ul>
-      {% endif %}
     </div>
-    <aside class="card welcome" data-welcome aria-labelledby="welcome-h">
-      <div class="welcome-head">
-        <span class="avatar" aria-hidden="true">SG<span class="wave"><i></i><i></i><i></i><i></i></span></span>
-        <p class="eyebrow" id="welcome-h">Portfolio assistant</p>
-      </div>
+    <aside class="welcome" data-welcome aria-labelledby="welcome-h">
+      <h2 class="welcome-title" id="welcome-h">Portfolio guide</h2>
       <p class="welcome-text" data-welcome-text>{{ welcome }}</p>
       <div class="welcome-actions">
-        <button type="button" class="btn small primary" data-welcome-play>▶ Play welcome</button>
-        <button type="button" class="btn small" data-welcome-stop hidden>■ Stop</button>
-        <a class="btn small" href="#ask" data-welcome-ask>Ask a question</a>
-        <button type="button" class="btn small ghost" data-welcome-mute aria-pressed="false">🔊 Sound on</button>
+        <button type="button" class="btn small primary" data-tour-start>Start Portfolio Tour</button>
+        <button type="button" class="btn small" data-welcome-play>Play welcome</button>
+        <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
       </div>
       <p class="welcome-status" role="status" aria-live="polite" data-welcome-status></p>
     </aside>
   </div>
-</section>
-
-<section id="about" aria-labelledby="about-h">
-  <div class="wrap grid two">
-    <div>
-      <p class="eyebrow">About</p>
-      <h2 id="about-h">Delivery you can trust, reliability you can measure</h2>
+  <div class="wrap">
+    <div class="outcomes" role="group" aria-labelledby="outcomes-h">
+      <p class="outcomes-label" id="outcomes-h">Professional experience · <span>{{ profile.impact_source }}</span></p>
+      <ul>
+        {% for item in profile.impact %}<li><strong>{{ item.figure }}</strong><span>{{ item.label }}</span><span class="sr-only"> ({{ item.text }})</span></li>{% endfor %}
+      </ul>
     </div>
-    <div>{% for para in profile.about %}<p>{{ para }}</p>{% endfor %}</div>
   </div>
 </section>
 
-<section id="skills" aria-labelledby="skills-h">
+<section id="architecture" class="arch" aria-labelledby="arch-h">
   <div class="wrap">
-    <p class="eyebrow">Technical skills</p>
-    <h2 id="skills-h">Tools I use day to day</h2>
-    <div class="skills-grid" style="margin-top:1.5rem">
-      {% for g in content.skills %}
-      <div class="card">
-        <h3>{{ g.group }}</h3>
-        <ul class="chips">{% for s in g['items'] %}<li class="chip">{{ s }}</li>{% endfor %}</ul>
-      </div>
-      {% endfor %}
+    <div class="section-head">
+      <h2 id="arch-h">Architecture overview</h2>
+      <p>Three portfolio lab architectures, drawn from the project source. Each case study has the detailed diagrams and a walkthrough.</p>
     </div>
+    <div class="tabs" role="tablist" aria-label="Architecture diagrams" data-tabs>
+      {% for a in arch %}<button type="button" role="tab" id="tab-{{ a.key }}" aria-controls="arch-{{ a.key }}" aria-selected="{{ 'true' if loop.first else 'false' }}" tabindex="{{ '0' if loop.first else '-1' }}" data-tab="{{ a.key }}">{{ a.label }}</button>{% endfor %}
+    </div>
+    {% for a in arch %}
+    <figure class="arch-panel" id="arch-{{ a.key }}" role="tabpanel" aria-labelledby="tab-{{ a.key }}" data-panel="{{ a.key }}" tabindex="0">
+      <div class="arch-scroll"><span class="scroll-hint">Scroll sideways to see the whole diagram.</span>{{ a.svg | safe }}</div>
+      <figcaption>
+        <p><span class="lab-tag">Portfolio lab</span> {{ a.caption }}</p>
+        <p class="arch-links"><a href="{{ root }}projects/{{ a.slug }}.html">{{ a.project }} case study</a> <a href="{{ root }}projects/{{ a.slug }}.html#architecture">Detailed diagrams</a></p>
+      </figcaption>
+    </figure>
+    {% endfor %}
   </div>
 </section>
 
 <section id="experience" aria-labelledby="exp-h">
   <div class="wrap">
-    <p class="eyebrow">Professional experience</p>
-    <h2 id="exp-h">11+ years, from servers to platforms</h2>
-    <ol class="timeline" style="margin-top:2rem">
+    <div class="section-head">
+      <h2 id="exp-h">Professional experience</h2>
+      <p>11+ years in IT, from Linux and Windows Server administration to Azure DevOps platforms and SRE for enterprise clients.</p>
+    </div>
+    <ol class="timeline">
       {% for e in content.experience %}
       <li>
         <div class="role-head"><h3>{{ e.title }}</h3><span class="dates">{{ e.dates }}</span></div>
@@ -91,37 +75,58 @@
       </li>
       {% endfor %}
     </ol>
-    <p class="privacy">Education: {{ content.education }}.</p>
+    <h3 class="sub-h" id="skills">Skills</h3>
+    <dl class="skills">
+      {% for g in content.skills %}<div><dt>{{ g.group }}</dt><dd>{{ g['items'] | join(', ') }}</dd></div>{% endfor %}
+    </dl>
+    <p class="muted">Education: {{ content.education }}.{% if resume %} <a href="{{ root }}resume.html">View the full resume</a>.{% endif %}</p>
   </div>
 </section>
 
 <section id="projects" aria-labelledby="proj-h">
   <div class="wrap">
-    <p class="eyebrow">Projects</p>
-    <h2 id="proj-h">Start with these two case studies</h2>
-    <p class="lead">Each project is a self-contained portfolio lab with source code, tests, architecture diagrams, a recorded demo and an issue backlog. They use synthetic apps and data, so the results below are lab results that anyone can re-run.</p>
-    <div class="grid two lead-grid" style="margin-top:1.5rem">
-      {% for p in lead %}{% set n = loop.index %}{% include "_lead_card.html" %}{% endfor %}
+    <div class="section-head">
+      <h2 id="proj-h">Projects</h2>
+      <p>Six portfolio labs built to show the work end to end. They use synthetic apps and data; each case study states what ran locally, what is simulated and what still needs Azure.</p>
     </div>
-    <h2 style="margin-top:3rem" id="flagship-h">More flagship labs</h2>
-    <div class="grid two" style="margin-top:1rem">
-      {% for p in flagship %}{% include "_project_card.html" %}{% endfor %}
+    <div class="featured">
+      {% for p in lead %}
+      <article class="project-feature" data-lead="{{ p.slug }}">
+        <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
+        <p><span class="k">Problem</span> {{ p.home_problem }}</p>
+        <p><span class="k">Lab result</span> {{ p.home_result }}</p>
+        <p class="stack">{{ p.stack[:5] | join(' · ') }}</p>
+        <div class="row-actions">
+          <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
+          <a class="btn small" href="{{ root }}projects/{{ p.slug }}.html#walkthrough">{{ 'Recorded demo' if p.video else 'Interactive walkthrough' }}</a>
+        </div>
+      </article>
+      {% endfor %}
     </div>
-    <h2 style="margin-top:3rem" id="supporting-h">Supporting projects</h2>
-    <div class="grid two" style="margin-top:1rem">
-      {% for p in supporting %}{% include "_project_card.html" %}{% endfor %}
-    </div>
+    <ul class="project-list">
+      {% for p in others %}
+      <li>
+        <div>
+          <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
+          <p>{{ p.home_result }}</p>
+        </div>
+        <div class="row-links">
+          <a href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
+          <a href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
   </div>
 </section>
 
 <section id="ask" aria-labelledby="ask-h">
   <div class="wrap assistant" data-assistant>
-    <div>
-      <p class="eyebrow">Ask My Portfolio</p>
-      <h2 id="ask-h">Type a question about my work</h2>
-      <p class="lead">Answers come from my resume and the six case studies, and each one is labelled as work experience or portfolio lab result. Typing works everywhere; voice input is optional and only starts when you press Voice.</p>
+    <div class="section-head">
+      <h2 id="ask-h">Ask My Portfolio</h2>
+      <p>Type a question. Answers come from the resume and the six case studies, are labelled as work experience or portfolio lab, and link to the page that backs them up.</p>
     </div>
-    <div class="samples" aria-label="Sample questions">
+    <div class="samples" aria-label="Suggested questions">
       {% for s in samples %}<button type="button" class="btn small" data-sample="{{ s }}">{{ s }}</button>{% endfor %}
     </div>
     <div class="assistant-panel">
@@ -133,26 +138,41 @@
           </select>
         </label>
         <label><input type="checkbox" id="speak-answers"> Read answers aloud</label>
-        <button type="button" class="btn small ghost clear" style="margin-left:auto">Clear</button>
+        <button type="button" class="btn small ghost clear">Clear</button>
       </div>
       <div class="log" role="log" aria-live="polite" aria-label="Conversation"></div>
       <div class="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="status-text">Loading…</span></div>
       <form class="ask-form" autocomplete="off">
         <label class="sr-only" for="ask-input">Your question</label>
-        <input id="ask-input" type="text" lang="en" placeholder="Type a question, e.g. What Azure DevOps work has he done?" maxlength="300">
+        <input id="ask-input" type="text" lang="en" placeholder="Type a question, e.g. How does the AKS rollback work?" maxlength="300">
         <button class="btn primary" type="submit">Ask</button>
         <span class="voice-controls">
-          <button class="btn ghost mic" type="button" aria-pressed="false" aria-label="Start voice input (optional)">🎤 Voice</button>
-          <button class="btn ghost stop" type="button" disabled>■ Stop</button>
+          <button class="btn ghost mic" type="button" aria-pressed="false" aria-label="Start voice input (optional)">Voice</button>
+          <button class="btn ghost stop" type="button" disabled>Stop</button>
         </span>
       </form>
     </div>
-    <p class="privacy">Privacy: questions and answers stay in this page and are not saved. If you use the microphone, your browser's speech service (for example Google in Chrome) processes the audio. The microphone starts only when you press Voice; the welcome greeting never uses it. This page remembers only whether the welcome has played or been muted, for this browser tab.</p>
+    <p class="privacy">Privacy: questions and answers stay in this page and are not saved. The microphone starts only when you press Voice; the welcome and the tour never use it. If you use Voice, your browser's speech service (for example Google in Chrome) processes the audio. This tab remembers only whether the welcome has played and whether sound is muted.</p>
   </div>
 </section>
+
+<div class="tour-bar" data-tour hidden role="region" aria-label="Portfolio tour">
+  <div class="wrap tour-inner">
+    <p class="tour-step" data-tour-step></p>
+    <p class="tour-caption" data-tour-caption aria-live="polite"></p>
+    <p class="tour-note" data-tour-note role="status" aria-live="polite"></p>
+    <div class="tour-controls">
+      <button type="button" class="btn small" data-tour-back>Back</button>
+      <button type="button" class="btn small primary" data-tour-next>Next</button>
+      <button type="button" class="btn small ghost" data-tour-retry hidden>Try audio again</button>
+      <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
+      <button type="button" class="btn small ghost" data-tour-stop>Stop tour</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ root }}assets/js/kb.js" defer></script>
 <script src="{{ root }}assets/js/assistant.js" defer></script>
-<script src="{{ root }}assets/js/welcome.js" defer></script>
+<script src="{{ root }}assets/js/tour.js" defer></script>
 {% endblock %}

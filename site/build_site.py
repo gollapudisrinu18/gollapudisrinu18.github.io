@@ -26,6 +26,9 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import diagrams  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "_site")
@@ -116,55 +119,49 @@ def links_for(cfg, project):
     }
 
 
-def contact_entry(contact):
+def contact_entry(resume, email):
     links = []
-    if contact.get("resume_pdf"):
-        links.append({"label": "Download resume (PDF)", "href": contact["resume_pdf"]})
-    if contact.get("linkedin_url"):
-        links.append({"label": "LinkedIn", "href": contact["linkedin_url"]})
-    if contact.get("email"):
-        links.append({"label": "Email", "href": "mailto:" + contact["email"]})
-    if links:
-        answer = "You can reach him through the links below. He is an immediate joiner and is looking for fully remote roles."
+    if resume:
+        links.append({"label": "View resume", "href": "resume.html"})
+    if email:
+        links.append({"label": "Email " + email, "href": "mailto:" + email})
+    if resume:
+        answer = ("His contact details are on his resume." + (f" You can also email him at {email}." if email else "")
+                  + " He is an immediate joiner and is looking for fully remote roles.")
     else:
-        answer = ("Contact details are kept off this public site. Please use the contact information on his resume, "
-                  "or open an issue on the GitHub repository.")
-    links.append({"label": "GitHub repository", "href": "{repo_url}"})
+        answer = ("Contact details aren't published on this site yet. You can open an issue on the GitHub repository. "
+                  "He is an immediate joiner and is looking for fully remote roles.")
+        links.append({"label": "GitHub repository", "href": "{repo_url}"})
     return {"id": "contact", "kind": "meta", "title": "How to contact",
-            "keywords": ["contact", "email", "phone", "reach", "linkedin", "call him", "resume", "cv"],
+            "keywords": ["contact", "email", "phone", "reach", "call him", "get in touch", "hire him"],
             "answer": answer, "links": links}
 
 
-def check_contact(cfg):
-    """Return only the contact links that are real; warn about the rest so nothing broken ships."""
-    c = dict(cfg.get("contact") or {})
-    out = {}
-    pdf = (c.get("resume_pdf") or "").strip().lstrip("/")
-    if pdf:
-        if pdf.lower().endswith(".pdf") and os.path.isfile(os.path.join(STATIC, pdf)):
-            out["resume_pdf"] = pdf
-        else:
-            print(f"WARNING: resume_pdf '{pdf}' is not a PDF under site/static; the resume button is hidden")
-    li = (c.get("linkedin_url") or "").strip()
-    if li:
-        if re.match(r"^https://([a-z]{2,3}\.)?linkedin\.com/in/[A-Za-z0-9_-]+/?$", li):
-            out["linkedin_url"] = li
-        else:
-            print(f"WARNING: linkedin_url '{li}' is not a linkedin.com/in/ profile URL; the LinkedIn link is hidden")
-    em = (c.get("email") or "").strip()
-    if em:
-        if re.match(r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$", em, re.I):
-            out["email"] = em
-        else:
-            print(f"WARNING: email '{em}' is not valid; the Email link is hidden")
-    missing = [k for k in ("resume_pdf", "linkedin_url", "email") if k not in out]
-    if missing:
-        print("Contact links not configured (hidden on the site): " + ", ".join(missing))
-    return out
+def resume_entry(resume):
+    if resume:
+        return {"id": "resume", "kind": "career", "title": "View resume",
+                "keywords": ["resume", "cv", "view resume", "view his resume", "curriculum vitae", "résumé"],
+                "keywords_te": ["రెజ్యూమ్"],
+                "answer": ("You can read his full resume on this site: professional summary, skills, employment history "
+                           "with employers and dates, and education."),
+                "links": [{"label": "View resume", "href": "resume.html"},
+                          {"label": "Experience timeline", "href": "index.html#experience"}]}
+    return {"id": "resume", "kind": "meta", "title": "Resume",
+            "keywords": ["resume", "cv", "view resume", "view his resume", "curriculum vitae"],
+            "answer": ("The resume page isn't published yet. Until it is, the experience timeline on this site lists "
+                       "his roles, employers, dates and results from the resume."),
+            "links": [{"label": "Experience timeline", "href": "index.html#experience"}]}
 
 
-def build_kb(content, extra, projects, contact=None):
-    contact = contact or {}
+def load_resume():
+    path = os.path.join(HERE, "src", "resume.json")
+    if not os.path.exists(path):
+        print("Resume: site/src/resume.json not found - the Resume page and View Resume links are hidden")
+        return None
+    return load(path)
+
+
+def build_kb(content, extra, projects, resume=None, email=""):
     p = content["profile"]
     te = extra["te"]
     entries = [
@@ -189,7 +186,8 @@ def build_kb(content, extra, projects, contact=None):
                                "the pipeline restores 1.0.0."),
                       "text_te": te["lab-aks"],
                       "links": [{"label": "AKS delivery case study", "href": "projects/aks-delivery-platform.html"},
-                                {"label": "Watch the rollback demo", "href": "demos/aks-delivery-platform.html"}]}},
+                                {"label": "Delivery diagram", "href": "index.html#arch-delivery"},
+                                {"label": "Rollback walkthrough", "href": "demos/aks-delivery-platform.html"}]}},
         {"id": "sre", "kind": "career", "title": "SRE and reliability experience",
          "keywords": ["sre", "site reliability", "reliability", "on-call", "on call", "slo", "error budget", "postmortem", "incident response"],
          "keywords_te": ["ఎస్ఆర్ఈ", "రిలయబిలిటీ"],
@@ -203,7 +201,8 @@ def build_kb(content, extra, projects, contact=None):
                                "burn-rate page to a trace-led investigation, a cache-fallback mitigation and a blameless postmortem."),
                       "text_te": te["lab-sre"],
                       "links": [{"label": "SRE lab case study", "href": "projects/aks-observability-sre-lab.html"},
-                                {"label": "Watch the incident demo", "href": "demos/aks-observability-sre-lab.html"}]}},
+                                {"label": "Reliability diagram", "href": "index.html#arch-reliability"},
+                                {"label": "Incident walkthrough", "href": "demos/aks-observability-sre-lab.html"}]}},
         {"id": "experience", "kind": "career", "title": "Work history and employers",
          "keywords": ["experience", "work history", "employers", "companies", "worked", "career", "jobs", "years", "clients"],
          "keywords_te": ["కంపెనీలు", "ఉద్యోగాలు", "కెరీర్"],
@@ -219,7 +218,9 @@ def build_kb(content, extra, projects, contact=None):
          "keywords": ["available", "availability", "remote", "notice period", "join", "joining", "relocate", "hire", "start"],
          "keywords_te": ["రిమోట్", "జాయిన్", "అందుబాటు"],
          "answer": "He is an immediate joiner and is looking for fully remote roles only. He is based in Bangalore, India.",
-         "answer_te": te["availability"], "links": []},
+         "answer_te": te["availability"],
+         "links": ([{"label": "View resume", "href": "resume.html"}] if resume else [])
+                  + [{"label": "Experience", "href": "index.html#experience"}]},
         {"id": "education", "kind": "career", "title": "Education",
          "keywords": ["education", "degree", "mba", "university", "qualification", "study"],
          "keywords_te": ["చదువు", "విద్య"],
@@ -228,7 +229,22 @@ def build_kb(content, extra, projects, contact=None):
          "keywords": ["certification", "certified", "certificate", "az-104", "az-400", "cka"],
          "answer": "No certifications are listed in his resume, so I can't confirm any. The projects in this portfolio show the hands-on work instead.",
          "links": []},
-        contact_entry(contact),
+        contact_entry(resume, email),
+        resume_entry(resume),
+        {"id": "delivery-architecture", "kind": "lab", "title": "Delivery architecture",
+         "keywords": ["delivery architecture", "delivery pipeline", "pipeline designed", "pipeline design", "ci/cd architecture",
+                      "release pipeline", "promotion", "approval gate", "environments", "architecture",
+                      "delivery diagram", "architecture diagram"],
+         "keywords_te": ["ఆర్కిటెక్చర్", "పైప్‌లైన్ డిజైన్"],
+         "answer": ("Portfolio lab: a change runs through Azure Pipelines, which validates it with pytest and builds one image in "
+                    "ACR tagged with the build ID. The same image is promoted through the orders-dev, orders-qa and "
+                    "orders-prod namespaces on AKS with Helm; Production waits for an approval check. Every deployment runs "
+                    "helm upgrade --wait and a smoke test, and a failed smoke test rolls back to the previous Helm revision "
+                    "and stops later stages."),
+         "answer_te": te["delivery-arch"],
+         "links": [{"label": "Delivery diagram", "href": "index.html#arch-delivery"},
+                   {"label": "AKS delivery case study", "href": "projects/aks-delivery-platform.html"},
+                   {"label": "Interactive walkthrough", "href": "demos/aks-delivery-platform.html"}]},
         {"id": "synthetic", "kind": "meta", "title": "Are the projects real client work?",
          "keywords": ["real", "client code", "synthetic", "employer", "fake", "simulated", "production data", "is this real"],
          "answer": ("No. The six projects are original portfolio labs inspired by his experience. They use synthetic apps, "
@@ -263,6 +279,16 @@ def build_kb(content, extra, projects, contact=None):
             "kind": "incident",
         },
     }
+    arch_for = {"aks-delivery-platform": ("Delivery diagram", "delivery"),
+                "azure-hub-spoke-terraform": ("Infrastructure diagram", "infrastructure"),
+                "aks-observability-sre-lab": ("Reliability diagram", "reliability")}
+
+    def arch_link(slug):
+        if slug not in arch_for:
+            return []
+        label, key = arch_for[slug]
+        return [{"label": label, "href": f"index.html#arch-{key}"}]
+
     for pr in projects:
         base_kw = [pr["title_short"].lower()] + [s.lower() for s in pr["keywords"]]
         entries.append({
@@ -270,15 +296,15 @@ def build_kb(content, extra, projects, contact=None):
             "keywords": base_kw,
             "answer": f"{pr['short']} Result: {pr['result']}",
             "links": [{"label": "Case study", "href": f"projects/{pr['slug']}.html"},
-                      {"label": "Demo", "href": f"demos/{pr['slug']}.html"},
-                      {"label": "Source", "href": pr["links"]["source"]}],
+                      {"label": "Interactive walkthrough", "href": f"demos/{pr['slug']}.html"}] + arch_link(pr["slug"]),
         })
         entries.append({
             "id": f"demo-{pr['slug']}", "kind": special.get(pr["slug"], {}).get("kind", "lab"), "intent": "demo",
             "title": f"{pr['title_short']} demo",
             "keywords": [f"{k} demo" for k in base_kw[:2]] + [f"demo {base_kw[0]}"],
             "answer": f"Demo: {pr['demo']['intro']} The walkthrough shows the architecture, the real run output and the verified result.",
-            "links": [{"label": "Play the demo", "href": f"demos/{pr['slug']}.html"},
+            "links": [{"label": "Interactive walkthrough", "href": f"demos/{pr['slug']}.html"},
+                      {"label": "Recorded demo", "href": f"projects/{pr['slug']}.html#walkthrough"},
                       {"label": "Case study", "href": f"projects/{pr['slug']}.html"}],
         })
         if pr["slug"] in special:
@@ -287,8 +313,9 @@ def build_kb(content, extra, projects, contact=None):
                 "id": f"how-{pr['slug']}", "kind": sp.get("kind", "lab"), "title": pr["title"] + " details",
                 "keywords": list(sp["how"]), "keywords_te": sp["how_te"],
                 "answer": sp["answer"], "answer_te": sp["answer_te"],
-                "links": [{"label": "Play the demo", "href": f"demos/{pr['slug']}.html"},
-                          {"label": "Case study", "href": f"projects/{pr['slug']}.html"}],
+                "links": [{"label": "Interactive walkthrough", "href": f"demos/{pr['slug']}.html"},
+                          {"label": "Recorded demo", "href": f"projects/{pr['slug']}.html#walkthrough"},
+                          {"label": "Case study", "href": f"projects/{pr['slug']}.html"}] + arch_link(pr["slug"]),
             })
     # "Show me the SRE incident demo" should land on the incident demo
     for e in entries:
@@ -299,8 +326,9 @@ def build_kb(content, extra, projects, contact=None):
                            "the 14.4x paging threshold. Span timings point to inventory.lookup, the cache fallback is enabled, "
                            "and the burn rate returns to 0x. The full timeline and postmortem are on the case study page.")
             e["answer_te"] = te["incident-demo"]
+    samples = [q for q in extra["samples"] if resume or "resume" not in q.lower()]
     return {"version": 1, "unavailable": extra["unavailable"], "unavailable_te": extra["unavailable_te"],
-            "samples": extra["samples"], "entries": entries}
+            "samples": samples, "entries": entries}
 
 
 DEMO_MD = """# Demo: {title}
@@ -374,8 +402,9 @@ def main():
         pr["vtt"] = os.path.exists(os.path.join(VIDEOS, pr["slug"] + ".vtt"))
         write_demo_md(cfg, pr, sections, raw, pr["video"])
 
-    cfg["contact"] = check_contact(cfg)
-    kb = build_kb(content, extra, projects, cfg["contact"])
+    resume = load_resume()
+    email = ((cfg.get("contact") or {}).get("email") or "").strip()
+    kb = build_kb(content, extra, projects, resume, email)
     kb_json = json.dumps(kb, ensure_ascii=False, indent=1).replace("{repo_url}", cfg["repo_url"])
 
     if os.path.exists(OUT):
@@ -387,8 +416,8 @@ def main():
 
     env = Environment(loader=FileSystemLoader(os.path.join(HERE, "templates")),
                       autoescape=select_autoescape(["html"]))
-    common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": extra["samples"],
-              "welcome": extra["welcome"]}
+    common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": kb["samples"],
+              "welcome": extra["welcome"], "resume": resume}
 
     def write(rel, template, **ctx):
         path = os.path.join(OUT, rel)
@@ -399,12 +428,29 @@ def main():
             fh.write(html_text)
 
     lead = [p for p in projects if p.get("lead")]
-    write("index.html", "index.html", content=content, lead=lead,
-          flagship=[p for p in projects if p["tier"] == "flagship" and p not in lead],
-          supporting=[p for p in projects if p["tier"] == "supporting" and p not in lead])
-    for pr in projects:
-        write(f"projects/{pr['slug']}.html", "project.html", p=pr)
-        write(f"demos/{pr['slug']}.html", "demo.html", p=pr)
+    svgs = diagrams.all_diagrams()
+    arch = [
+        {"key": "delivery", "label": "Delivery", "slug": "aks-delivery-platform", "project": "AKS Delivery Platform",
+         "svg": svgs["delivery"],
+         "caption": "One image built in ACR is promoted Dev → QA → Prod on AKS, with an approval gate before Production. "
+                    "Every deployment is smoke-tested and a failure rolls back to the previous Helm revision."},
+        {"key": "infrastructure", "label": "Infrastructure", "slug": "azure-hub-spoke-terraform",
+         "project": "Hub-and-Spoke Terraform", "svg": svgs["infrastructure"],
+         "caption": "Terraform builds a hub and two peered spokes with NSGs. Storage is reached only through a private "
+                    "endpoint, and the private DNS zone is linked to every VNet."},
+        {"key": "reliability", "label": "Reliability", "slug": "aks-observability-sre-lab",
+         "project": "Observability and SRE Incident Lab", "svg": svgs["reliability"],
+         "caption": "Metrics and traces feed a latency SLO with burn-rate alerts. A page leads to trace-led investigation, "
+                    "a cache-fallback mitigation and a blameless postmortem."},
+    ]
+    write("index.html", "index.html", content=content, lead=lead, arch=arch,
+          others=[p for p in projects if p not in lead])
+    for i, pr in enumerate(projects):
+        write(f"projects/{pr['slug']}.html", "project.html", p=pr, nav="projects",
+              prev=projects[i - 1] if i else None, next=projects[i + 1] if i + 1 < len(projects) else None)
+        write(f"demos/{pr['slug']}.html", "demo.html", p=pr, nav="projects")
+    if resume:
+        write("resume.html", "resume.html", nav="resume")
     write("404.html", "404.html")
     with open(os.path.join(OUT, ".nojekyll"), "w") as fh:
         fh.write("")

@@ -13,6 +13,43 @@
     });
   }
 
+  // Architecture tabs (all panels stay visible if this script does not run).
+  var tablist = document.querySelector("[data-tabs]");
+  if (tablist) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll("[role=tab]"));
+    var select = function (tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute("aria-controls"));
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+    };
+    document.documentElement.classList.add("tabs-ready");
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { select(t, false); });
+      t.addEventListener("keydown", function (e) {
+        var n = null;
+        if (e.key === "ArrowRight") n = tabs[(i + 1) % tabs.length];
+        if (e.key === "ArrowLeft") n = tabs[(i - 1 + tabs.length) % tabs.length];
+        if (e.key === "Home") n = tabs[0];
+        if (e.key === "End") n = tabs[tabs.length - 1];
+        if (n) { e.preventDefault(); select(n, true); }
+      });
+    });
+    var fromHash = function () {
+      var m = /^#arch-(\w+)/.exec(location.hash);
+      var t = m && document.getElementById("tab-" + m[1]);
+      if (t) { select(t, false); document.getElementById("arch-" + m[1]).scrollIntoView(); }
+    };
+    select(tabs.filter(function (t) { return t.getAttribute("aria-selected") === "true"; })[0] || tabs[0], false);
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    window.PortfolioTabs = { select: select };
+  }
+
   var stage = document.querySelector("[data-walkthrough]");
   if (!stage) return;
   var scenes = Array.prototype.slice.call(stage.querySelectorAll(".scene"));

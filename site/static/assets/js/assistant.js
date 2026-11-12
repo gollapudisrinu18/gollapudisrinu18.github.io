@@ -25,7 +25,7 @@
 
   var KB = null;
   var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-  var synth = ("speechSynthesis" in window) ? window.speechSynthesis : null;
+  var synth = (window.PortfolioSpeech && window.PortfolioSpeech.supported) ? true : null;
   var rec = null;
   var listening = false;
 
@@ -66,37 +66,23 @@
     return n;
   }
 
-  function pickVoice(code) {
-    if (!synth) return null;
-    var voices = synth.getVoices() || [];
-    var exact = voices.filter(function (v) { return v.lang && v.lang.toLowerCase().indexOf(code) === 0; });
-    if (!exact.length) return null;
-    var pref = exact.filter(function (v) { return /en-IN|en-US|en-GB|te-IN/i.test(v.lang); });
-    return (pref[0] || exact[0]);
-  }
+  var S = window.PortfolioSpeech || { supported: false, speak: function (t, o) { o.onfail("unsupported"); }, stop: function () {} };
 
   function speak(text, code) {
-    if (!synth) {
-      setStatus("Audio playback isn't available in this browser. The answer is shown as text.", "error");
-      return false;
-    }
-    var voice = pickVoice(code);
-    if (!voice && code === "te") {
-      setStatus("No Telugu voice is installed on this device, so the answer is shown as text only.", "error");
-      return false;
-    }
-    synth.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    u.lang = code === "te" ? "te-IN" : "en-US";
-    if (voice) u.voice = voice;
-    u.rate = 1;
-    u.onstart = function () { setStatus("Speaking the answer… press Stop to end.", "speaking"); };
-    u.onend = function () { setStatus("Ready. Type a question, or press Voice to speak.", ""); };
-    u.onerror = function (e) {
-      if (e.error !== "interrupted" && e.error !== "canceled") setStatus("Audio playback failed (" + e.error + ").", "error");
-    };
-    synth.speak(u);
-    return true;
+    S.speak(text, {
+      lang: code,
+      onstart: function () { setStatus("Reading the answer aloud. Press Stop to end.", "speaking"); },
+      onend: function (info) { if (!info.interrupted) setStatus("Ready. Type a question, or press Voice to speak.", ""); },
+      onfail: function (reason) {
+        var msg = {
+          unsupported: "This browser can't read answers aloud. The answer is shown as text.",
+          "no-voice": "No Telugu voice is installed on this device, so the answer is shown as text only.",
+          blocked: "Your browser needs a click before it can play sound. Press ▶ Listen to hear the answer.",
+          failed: "Audio couldn't play in this browser. The answer is shown as text; you can press ▶ Listen to try again."
+        }[reason] || "Audio couldn't play. The answer is shown as text.";
+        setStatus(msg, "error");
+      }
+    });
   }
 
   function linkRow(list) {
@@ -143,7 +129,7 @@
       nodes.push(s);
     }
     if (synth) {
-      var play = el("button", "btn small ghost", "▶ Listen");
+      var play = el("button", "btn small ghost listen", "▶ Listen");
       play.type = "button";
       play.setAttribute("aria-label", "Read this answer aloud");
       play.addEventListener("click", function () { speak(spokenText(res), res.lang); });
@@ -178,7 +164,7 @@
 
   function startListening() {
     if (!Recognition) return;
-    if (synth) synth.cancel();
+    S.stop();
     rec = new Recognition();
     rec.lang = LANGS[lang()].rec;
     rec.interimResults = true;
@@ -207,7 +193,7 @@
         "audio-capture": "No microphone was found. Please type your question.",
         "network": "The browser's speech service couldn't be reached. Please type your question.",
         "language-not-supported": LANGS[lang()].label + " voice input isn't supported in this browser. Please type your question."
-      }[e.error] || ("Voice input stopped (" + e.error + "). Please type your question.");
+      }[e.error] || "Voice input stopped. Please type your question.";
       if (e.error !== "aborted") setStatus(msg, "error");
       if (e.error === "not-allowed" || e.error === "service-not-allowed") micUnavailable(msg, "error");
     };
@@ -217,12 +203,12 @@
       if (statusEl.classList.contains("listening")) setStatus("Ready.", "");
       if (finalText.trim()) { ask(finalText); input.value = ""; }
     };
-    try { rec.start(); } catch (err) { setStatus("Couldn't start voice input: " + err.message, "error"); }
+    try { rec.start(); } catch (err) { setStatus("Voice input couldn't start in this browser. Please type your question.", "error"); }
   }
 
   function stopAll() {
     if (rec && listening) { try { rec.abort(); } catch (e) { /* ignore */ } }
-    if (synth) synth.cancel();
+    S.stop();
     micBtn.setAttribute("aria-pressed", "false");
     setStatus("Stopped. Type a question, or press Voice to speak.", "");
   }
@@ -249,14 +235,14 @@
   if (langSel) langSel.addEventListener("change", function () {
     input.placeholder = LANGS[lang()].placeholder;
     input.lang = lang();
-    if (lang() === "te" && synth && synth.getVoices().length && !pickVoice("te")) {
+    if (lang() === "te" && synth && !S.hasVoice("te")) {
       setStatus("Telugu voice input works in supported browsers. This device has no Telugu voice for playback, so answers appear as text.", "");
     } else {
       setStatus("Language: " + LANGS[lang()].label + ".", "");
     }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && (listening || (synth && synth.speaking))) stopAll();
+    if (e.key === "Escape" && (listening || S.isSpeaking())) stopAll();
   });
 
   if (!Recognition) micUnavailable("Voice input isn't available in this browser. You can type your question instead.");
@@ -267,9 +253,8 @@
   }
   if (!synth && speakBox) {
     speakBox.disabled = true;
-    speakBox.closest("label").title = "Audio playback isn't available in this browser";
+    speakBox.closest("label").title = "This browser can't read answers aloud";
   }
-  if (synth) synth.getVoices(); // warm up voice list (some browsers load it async)
 
   fetch(base + "data/knowledge.json")
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -277,7 +262,7 @@
       KB = data;
       if (!statusEl.classList.contains("error")) setStatus(Recognition && !micBtn.disabled ? "Ready. Type a question, or press Voice to speak." : "Ready. Type your question below.", "");
     })
-    .catch(function () { setStatus("Couldn't load the portfolio knowledge base.", "error"); });
+    .catch(function () { setStatus("The answers couldn't load. Please refresh the page.", "error"); });
 
   window.__portfolioAssistant = { ask: ask, hasRecognition: !!Recognition, hasSynthesis: !!synth };
 })();

@@ -5,7 +5,7 @@
     "availability": "Immediate joiner · Open to fully remote roles",
     "location": "Bangalore, India",
     "summary": "Senior DevOps Engineer and Site Reliability Engineer with 11+ years in IT. I moved from Linux and Windows Server administration into Microsoft Azure infrastructure, Azure DevOps CI/CD, AKS platform operations and SRE for enterprise clients in the UK and US. My recent work covers Azure Pipelines, AKS, ACR, Terraform, Entra ID, Key Vault and Azure Policy, L3 on-call escalation, SLOs and error budgets, and blameless postmortems.",
-    "intro": "Senior Azure DevOps Engineer and Site Reliability Engineer with 11+ years in IT, building Azure DevOps CI/CD pipelines that ship to AKS on infrastructure defined in Terraform. On the SRE side I set SLOs and error budgets, alert on burn rate instead of noise, take L3 on-call and write blameless postmortems.",
+    "intro": "Senior Azure DevOps Engineer and Site Reliability Engineer with 11+ years in IT, building Azure DevOps CI/CD pipelines that ship to AKS on infrastructure defined in Terraform. On the reliability side I set SLOs and error budgets, alert on burn rate instead of noise, take L3 on-call and write blameless postmortems.",
     "impact": [
       {
         "figure": "10+",
@@ -23,7 +23,7 @@
         "text": "~45% fewer false-positive alerts"
       }
     ],
-    "impact_source": "Professional experience at MITIE (Teknip Technology)",
+    "impact_source": "DevOps Engineer, Teknip Technology (client: MITIE), May 2024 – Feb 2026",
     "about": [
       "I build delivery platforms that teams can trust: one pipeline that tests, scans, promotes and rolls back on its own, running on infrastructure defined in code.",
       "On the reliability side I define SLOs with application teams, alert on error-budget burn instead of noise, and write postmortems that lead to fixes.",
@@ -213,7 +213,41 @@
           "Revision 2 deploys 1.1.0. Health probes stay green, but the orders API returns HTTP 500, so the smoke test fails.",
           "The script rolls back to revision 1. Helm records it as revision 3, and /version confirms 1.0.0 is serving again."
         ]
-      }
+      },
+      "home_problem": "Releases were promoted by hand and a broken release stayed live until someone noticed.",
+      "home_result": "Release 1.1.0 failed its smoke test; the deploy script rolled back to 1.0.0 automatically.",
+      "environment": "Azure Pipelines multi-stage YAML, ACR and AKS with three namespaces (orders-dev, orders-qa, orders-prod), deployed with Helm. A Flask orders API stands in for a real service.",
+      "scope": [
+        [
+          "Release, smoke test and rollback flow (local Helm stand-in) and 7 unit tests",
+          "Ran locally"
+        ],
+        [
+          "helm lint and helm template for dev, qa and prod",
+          "Checked in CI"
+        ],
+        [
+          "ACR build, AKS deployment and the Production approval",
+          "Not yet run on Azure"
+        ]
+      ],
+      "decisions": [
+        "Build once, promote the same image tag (the build ID) through Dev, QA and Production, so what was tested is what ships.",
+        "Run a functional smoke test after helm upgrade --wait: liveness probes stayed green while the orders API returned HTTP 500.",
+        "Record the Helm revision before deploying and roll back to it on failure, then fail the stage so later environments are never touched.",
+        "Rolling updates with maxUnavailable 0 and maxSurge 1, a PodDisruptionBudget, and a non-root, read-only container."
+      ],
+      "failure": "Release 1.1.0 contains a simulated defect. Health probes pass, but GET /api/v1/orders and GET /api/v1/orders/ORD-1001 return HTTP 500, so the smoke test fails.",
+      "recovery": "The script runs helm rollback to revision 1. Helm records the rollback as revision 3, the smoke test passes again against 1.0.0, and the stage is marked failed so QA and Production are not deployed.",
+      "evidence_gaps": "No run against a real AKS cluster or Azure DevOps organisation is recorded yet; the pipeline, Helm chart and scripts are ready for one.",
+      "keywords": [
+        "azure pipelines",
+        "acr",
+        "helm",
+        "aks delivery",
+        "delivery platform",
+        "smoke test"
+      ]
     },
     {
       "slug": "aks-observability-sre-lab",
@@ -257,7 +291,45 @@
           "Mitigation: the inventory cache fallback brings the burn rate back to 0x.",
           "Postmortem: in the 3-hour simulation the page fired at 16 minutes, mitigation landed at 27 minutes, 3.6% of the monthly error budget was used, and four action items were recorded."
         ]
-      }
+      },
+      "home_problem": "Checkout became slow while still returning HTTP 200, and nobody was paged.",
+      "home_result": "The 14.4x burn-rate page fired at 16 minutes; traces pointed to inventory.lookup; the fallback mitigated at 27 minutes.",
+      "environment": "checkout-api instrumented with the OpenTelemetry SDK and a Prometheus histogram; Prometheus recording and burn-rate rules, Grafana, and an OTel Collector. The SLO is 99% of POST /api/checkout within 300 ms over 30 days.",
+      "scope": [
+        [
+          "Live incident demo against the instrumented service and 8 tests",
+          "Ran locally"
+        ],
+        [
+          "3-hour minute-by-minute incident timeline used for the postmortem",
+          "Simulation"
+        ],
+        [
+          "promtool check rules and promtool test rules",
+          "Checked in CI"
+        ],
+        [
+          "Azure Managed Prometheus, Managed Grafana and Application Insights",
+          "Not yet run on Azure"
+        ]
+      ],
+      "decisions": [
+        "Alert on error-budget burn, not raw latency: a 14.4x page (1-hour and 5-minute windows, for 2 minutes) and a 6x ticket.",
+        "Recording rules for bad-request ratios so dashboards and alerts read the same numbers.",
+        "One span per dependency, so a slow checkout shows which call is slow without guesswork.",
+        "A cache fallback toggle documented in the runbook as the first mitigation."
+      ],
+      "failure": "The inventory dependency slows to about 800 ms. 58% of checkouts miss the 300 ms objective while still returning HTTP 200, and the burn rate passes the 14.4x paging threshold.",
+      "recovery": "Slow-request span timings point to inventory.lookup. Enabling the inventory cache fallback brings the burn rate back to 0x. The blameless postmortem records 3.6% of the monthly error budget used and four action items.",
+      "evidence_gaps": "The timeline numbers come from the simulator, not from a production incident. The Azure Monitor setup is documented but has not been run on AKS.",
+      "keywords": [
+        "opentelemetry",
+        "prometheus",
+        "grafana",
+        "observability",
+        "slo",
+        "burn-rate"
+      ]
     },
     {
       "slug": "azure-hub-spoke-terraform",
@@ -291,7 +363,44 @@
           "Terraform adds the missing VNet link. The same lookup from the app spoke now returns the private endpoint IP.",
           "The check expected a private answer and now passes."
         ]
-      }
+      },
+      "home_problem": "A private endpoint without a matching private DNS link sent workloads to the public endpoint (HTTP 403).",
+      "home_result": "The app spoke first resolved a public IP; after Terraform linked the zone it resolved 10.1.2.4.",
+      "environment": "Terraform with azurerm 4.x: a hub VNet (10.0.0.0/16), app and data spokes (10.1.0.0/16, 10.2.0.0/16), NSGs, a storage account with public access disabled, a private endpoint and the privatelink.blob private DNS zone. State in Azure Storage with Entra ID auth.",
+      "scope": [
+        [
+          "Static checks, 7 tests and the DNS resolution model built from Terraform output",
+          "Ran locally"
+        ],
+        [
+          "terraform validate and terraform test with a mocked provider",
+          "Checked in CI"
+        ],
+        [
+          "terraform apply and nslookup from a VM in the spoke",
+          "Not yet run on Azure"
+        ]
+      ],
+      "decisions": [
+        "Six small modules (hub, spoke, peering, NSG, private DNS, private endpoint) instead of one large configuration.",
+        "Storage public network access disabled and asserted in a terraform test, so private endpoints are the only path.",
+        "The DNS zone's VNet links are a map in code, so a missing link shows up in review and in tests.",
+        "Remote state with Entra ID auth, versioning and soft delete rather than access keys."
+      ],
+      "failure": "With misconfig.tfvars the privatelink.blob zone is linked to the hub and data VNets only. The app spoke follows the public CNAME, gets public IP 20.60.0.10, and storage rejects the request with HTTP 403.",
+      "recovery": "Comparing resolution from the data spoke shows the missing link. Applying Terraform without misconfig.tfvars adds the app VNet link, and the same lookup returns the private endpoint 10.1.2.4.",
+      "evidence_gaps": "DNS answers come from a resolution model driven by Terraform's dns_model output, not from nslookup on Azure.",
+      "keywords": [
+        "hub and spoke",
+        "hub-and-spoke",
+        "hub spoke",
+        "private endpoint",
+        "private dns",
+        "vnet",
+        "network",
+        "infrastructure",
+        "terraform"
+      ]
     },
     {
       "slug": "azure-devsecops-supply-chain",
@@ -324,7 +433,39 @@
           "Only the release image is signed, and the signature verifies.",
           "Admission decisions: the unsigned, tag-only and tampered images are rejected; the signed image is admitted."
         ]
-      }
+      },
+      "home_problem": "Any pullable image could run on AKS, and nobody knew what was inside it.",
+      "home_result": "Unsigned, tag-only and tampered images were rejected at admission; the signed image was admitted.",
+      "environment": "Azure Pipelines with Trivy, Syft (SPDX SBOM) and Cosign using an Azure Key Vault key; Kyverno verifyImages on AKS; Entra Workload ID and the Secrets Store CSI driver for secrets.",
+      "scope": [
+        [
+          "Real ECDSA P-256 signing in Cosign's payload format and a local admission webhook, 9 tests",
+          "Ran locally"
+        ],
+        [
+          "Trivy, Syft, Cosign, Kyverno on AKS and Workload ID",
+          "Not yet run on Azure"
+        ]
+      ],
+      "decisions": [
+        "Push and deploy by digest, and have Kyverno verify the digest (mutateDigest and verifyDigest), so a tag cannot be swapped after signing.",
+        "Keep the signing key in Key Vault (azurekms://) so the pipeline never holds the private key.",
+        "Enforce in the admission policy, not just in the pipeline, so images from any source are checked.",
+        "Use Workload ID instead of stored credentials to read Key Vault secrets."
+      ],
+      "failure": "A harmless unsigned image, a tag-only reference, and a signature copied onto a different digest are submitted to the cluster.",
+      "recovery": "All three are rejected at admission. The image signed with the Key Vault key is admitted; images outside the protected repository are unaffected.",
+      "evidence_gaps": "The local webhook applies the same rule as the Kyverno policy; the Kyverno policy itself has not been run on an AKS cluster here.",
+      "keywords": [
+        "supply chain",
+        "devsecops",
+        "trivy",
+        "sbom",
+        "cosign",
+        "kyverno",
+        "signed image",
+        "admission"
+      ]
     },
     {
       "slug": "azure-functions-event-processing",
@@ -355,7 +496,37 @@
           "A message that fails on every attempt is moved to poison after five dequeues.",
           "The ledger holds exactly one entry per order."
         ]
-      }
+      },
+      "home_problem": "Queue redelivery charged customers twice, and malformed events retried until dropped.",
+      "home_result": "ORD-1 was delivered three times and recorded once; bad messages went to the poison queue.",
+      "environment": "An Azure Functions (Python v2) queue trigger with Storage Queues, Table Storage for idempotency and Application Insights; a local runtime reproduces queue delivery, visibility timeouts and maxDequeueCount 5.",
+      "scope": [
+        [
+          "Processor and local queue runtime, 19 tests (in-memory and SQLite stores)",
+          "Ran locally"
+        ],
+        [
+          "Function App, storage account and Application Insights",
+          "Not yet run on Azure"
+        ]
+      ],
+      "decisions": [
+        "Claim an idempotency key before the side effect and complete it after, atomically in Table Storage.",
+        "Classify errors: transient errors are retried through the queue, permanent ones go straight to poison.",
+        "Structured JSON logs with the order ID and attempt number on every line."
+      ],
+      "failure": "The same order is delivered three times after a lost acknowledgement; the ledger returns HTTP 503 twice; one message is malformed and one fails on every attempt.",
+      "recovery": "Duplicates are recognised and skipped, the transient failure succeeds on the third attempt, the malformed message goes straight to poison, and the always-failing message moves to poison after five dequeues.",
+      "evidence_gaps": "The queue behaviour comes from the local runtime; it has not been run on a Function App.",
+      "keywords": [
+        "azure functions",
+        "functions",
+        "queue",
+        "idempotency",
+        "poison",
+        "retry",
+        "event processing"
+      ]
     },
     {
       "slug": "azure-dr-restore-drill",
@@ -386,7 +557,36 @@
           "The latest backup is restored and every file checksum matches the manifest.",
           "RTO and RPO are measured against their targets and a drill report is written."
         ]
-      }
+      },
+      "home_problem": "Backups existed but had never been restored, and RTO and RPO were never measured.",
+      "home_result": "1,000 of 1,037 records restored with matching checksums; RTO 7 min (target 30), RPO 45 min (target 60).",
+      "environment": "A synthetic orders archive with read-only snapshots and SHA-256 manifests locally; an Azure script for Blob point-in-time restore with versioning, change feed and soft delete.",
+      "scope": [
+        [
+          "Full drill and 4 tests",
+          "Ran locally"
+        ],
+        [
+          "Blob point-in-time restore with scripts/azure-drill.sh",
+          "Not yet run on Azure"
+        ]
+      ],
+      "decisions": [
+        "Prove a restore with per-file SHA-256 checksums and record counts, not just a successful copy.",
+        "Make snapshots read-only as a stand-in for immutable backups.",
+        "Delete the data on purpose during the drill and measure RTO and RPO against targets in a written report."
+      ],
+      "failure": "The primary dataset is deleted and the integrity check fails. 37 orders were written after the last backup.",
+      "recovery": "The latest backup is restored and every checksum matches the manifest. The 37 later records are the measured RPO loss.",
+      "evidence_gaps": "Measured in the local drill; the Azure point-in-time restore script has not been run here.",
+      "keywords": [
+        "disaster recovery",
+        "restore",
+        "backup",
+        "rto",
+        "rpo",
+        "dr drill"
+      ]
     }
   ]
 }
