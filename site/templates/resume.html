@@ -1,34 +1,38 @@
 {% extends "base.html" %}
 {% block title %}Resume · {{ profile.name }}{% endblock %}
-{% block description %}Resume of {{ profile.name }}, {{ profile.headline }}.{% endblock %}
+{% block description %}Resume of {{ profile.name }}, {{ profile.headline }}: experience, skills and education.{% endblock %}
 {% block main %}
 <div class="wrap resume-wrap">
-  <article class="resume" aria-labelledby="resume-name">
-    <header class="resume-head">
-      <h1 id="resume-name">{{ resume.name }}</h1>
-      {% if resume.title %}<p class="resume-title">{{ resume.title }}</p>{% endif %}
-      <ul class="resume-contact">
-        {% for c in resume.contact %}<li>{% if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% else %}{{ c.text }}{% endif %}</li>{% endfor %}
-        <li><span class="k">Portfolio:</span> <a href="{{ cfg.pages_url }}">{{ cfg.pages_url }}</a></li>
-      </ul>
-    </header>
+  <p class="breadcrumb"><a href="{{ root }}index.html">Portfolio</a> / Resume</p>
+  <h1 class="resume-page-title">Resume</h1>
+  <div class="resume-viewer" data-resume-viewer>
+    <iframe class="pdf-frame" src="{{ root }}{{ resume_pdf }}#toolbar=0&amp;navpanes=0&amp;view=FitH" title="Resume of {{ profile.name }} (PDF, {{ resume_pages | length }} pages)" loading="eager"></iframe>
+    <div class="pdf-pages" aria-hidden="true">
+      {% for img in resume_pages %}<img src="{{ root }}{{ img }}" alt="" width="1275" height="1650" loading="{{ 'eager' if loop.first else 'lazy' }}">{% endfor %}
+    </div>
+  </div>
+  {# Text of the same resume for screen readers; visually the page shows only the PDF. #}
+  <article class="sr-only" aria-labelledby="resume-name">
+    <h2 id="resume-name">{{ resume.name }}</h2>
+    <p>{{ resume.title }}. {{ resume.subtitle }}.</p>
+    <ul>{% for c in resume.contact %}<li>{% if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% else %}{{ c.text }}{% endif %}</li>{% endfor %}
+      <li>Portfolio: <a href="{{ cfg.pages_url }}">{{ cfg.pages_url }}</a></li></ul>
     {% for sec in resume.sections %}
-    <section aria-labelledby="rs-{{ loop.index }}">
-      <h2 id="rs-{{ loop.index }}">{{ sec.heading }}</h2>
-      {% for b in sec.blocks %}
-        {% if b.type == 'p' %}<p>{{ b.text }}</p>
-        {% elif b.type == 'ul' %}<ul>{% for i in b['items'] %}<li>{{ i }}</li>{% endfor %}</ul>
-        {% elif b.type == 'skills' %}<dl class="skills">{% for row in b.rows %}<div><dt>{{ row[0] }}</dt><dd>{{ row[1] }}</dd></div>{% endfor %}</dl>
-        {% elif b.type == 'role' %}
-        <div class="resume-role">
-          <div class="role-head"><h3>{{ b.title }}</h3>{% if b.dates %}<span class="dates">{{ b.dates }}</span>{% endif %}</div>
-          {% if b.org %}<p class="org">{{ b.org }}</p>{% endif %}
-          {% if b['items'] %}<ul>{% for i in b['items'] %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
-        </div>
-        {% endif %}
-      {% endfor %}
-    </section>
+    <h2>{{ sec.heading }}</h2>
+    {% for b in sec.blocks %}
+      {% if b.type == 'p' %}<p>{{ b.text }}</p>
+      {% elif b.type in ('ul', 'tags') %}<ul>{% for i in b['items'] %}<li>{{ i }}</li>{% endfor %}</ul>
+      {% elif b.type == 'skills' %}<ul>{% for row in b.rows %}<li>{{ row[0] }}: {{ row[1] }}</li>{% endfor %}</ul>
+      {% elif b.type == 'role' %}<h3>{{ b.title }}, {{ b.dates }}</h3><p>{{ b.org }}</p>{% if b.env %}<p>Environment: {{ b.env }}</p>{% endif %}
+        {% for g in b.groups %}{% if g.heading %}<h4>{{ g.heading }}</h4>{% endif %}<ul>{% for i in g['items'] %}<li>{{ i }}</li>{% endfor %}</ul>{% endfor %}
+      {% endif %}
+    {% endfor %}
     {% endfor %}
   </article>
+  <p class="resume-back"><a class="btn" href="{{ root }}index.html#projects">View the six case studies</a> <a class="btn ghost" href="{{ root }}index.html#ask">Ask My Portfolio</a></p>
 </div>
+<script>
+  // Browsers without a built-in PDF viewer (most phones) get the page images instead.
+  if (navigator.pdfViewerEnabled === false) document.querySelector("[data-resume-viewer]").classList.add("no-pdf");
+</script>
 {% endblock %}

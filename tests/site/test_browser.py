@@ -325,9 +325,12 @@ def test_hero_actions_and_outcomes(browser):
     expect(hero.locator(".headline")).to_have_text("Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)")
     for fact in ("11+ years in IT", "Immediate joiner", "Remote only", "Bangalore, India"):
         expect(hero.locator(".facts")).to_contain_text(fact)
-    expect(hero.locator(".cta .btn.primary")).to_have_text("View Projects")
+    primaries = [b.inner_text() for b in hero.locator(".cta .btn.primary").all()]
+    assert primaries == (["View Projects", "View Resume"] if HAS_RESUME else ["View Projects"])
     expect(hero.locator(".cta [data-cta=tour]")).to_have_text("Start Portfolio Tour")
-    assert hero.locator(".cta [data-cta=resume]").count() == (1 if HAS_RESUME else 0)
+    assert page.locator(".hero [data-tour-start]").count() == 1          # one tour button in the opening area
+    lead = hero.locator(".lead").inner_text()
+    assert "Senior Azure DevOps Engineer" not in lead                     # role is not repeated in the intro
     assert page.locator("text=Download Resume").count() == 0
     assert page.locator("a[href*='linkedin']").count() == 0
     out = page.locator(".outcomes")
@@ -335,6 +338,9 @@ def test_hero_actions_and_outcomes(browser):
     expect(out).to_contain_text("MITIE")
     for t in ("10+ applications deployed to AKS", "Release lead time reduced from days to hours", "~45% fewer false-positive alerts"):
         expect(out).to_contain_text(t)
+    # each metric is announced once: visible figures are hidden from assistive tech, the sentence is not
+    snap = page.locator(".outcomes ul").aria_snapshot()
+    assert snap.count("10+") == 1 and snap.count("45%") == 1, snap
 
 
 def test_architecture_tabs_and_diagrams(browser):
@@ -344,11 +350,11 @@ def test_architecture_tabs_and_diagrams(browser):
         panel = page.locator(f"#arch-{key}")
         expect(panel).to_be_visible()
         expect(panel.locator("figcaption")).to_contain_text("Portfolio lab")
-        svg = panel.locator("svg.arch-svg")
+        svg = panel.locator(".arch-wide svg.arch-svg")
         assert svg.get_attribute("role") == "img"
-        assert page.evaluate(f"document.querySelector('#arch-{key} svg').getBBox().width") > 700
+        assert page.evaluate(f"document.querySelector('#arch-{key} .arch-wide svg').getBBox().width") > 700
         # arrowheads resolve to this diagram's own markers
-        ids = page.evaluate(f"[...document.querySelectorAll('#arch-{key} [marker-end]')].map(e => e.getAttribute('marker-end'))")
+        ids = page.evaluate(f"[...document.querySelectorAll('#arch-{key} .arch-wide [marker-end]')].map(e => e.getAttribute('marker-end'))")
         assert ids and all(i.startswith(f"url(#{key}-") for i in ids)
     # keyboard: arrow keys move between tabs
     page.focus("[data-tab=reliability]")
@@ -410,26 +416,33 @@ def test_tour_controls_and_captions(browser):
     bar = page.locator("[data-tour]")
     expect(bar).to_be_visible()
     expect(bar.locator("[data-tour-step]")).to_have_text("Delivery · 1 of 4")
+    expect(bar.locator("[data-tour-caption]")).to_contain_text("Delivery.")
     expect(page.locator("#arch-delivery")).to_have_class(re.compile("tour-focus"))
-    page.wait_for_function("window.__spoken.length > 0")
-    assert window_text(page).startswith("Delivery.")
+    page.wait_for_timeout(300)
+    assert page.evaluate("window.__spoken.length") == 0          # narration waits for Play narration
+    page.click("[data-tour-play]")
+    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Delivery.')")
+    expect(bar.locator("[data-tour-note]")).to_contain_text("Narrating: Delivery")
     page.click("[data-tour-next]")
     expect(bar.locator("[data-tour-step]")).to_have_text("Infrastructure · 2 of 4")
+    expect(bar.locator("[data-tour-caption]")).to_contain_text("Infrastructure.")
     expect(page.locator("[data-tab=infrastructure]")).to_have_attribute("aria-selected", "true")
-    expect(page.locator("#arch-infrastructure")).to_be_visible()
     page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Infrastructure')")
-    assert page.evaluate("window.__cancelled") >= 1           # previous narration stopped: no overlap
+    assert page.evaluate("window.__cancelled") >= 1               # previous narration cancelled: no overlap
+    assert not any(t.startswith("Delivery") for t in page.evaluate("window.__spoken.slice(1).map(s => s.text)")[-1:])
     page.click("[data-tour-back]")
-    expect(bar.locator("[data-tour-caption]")).to_contain_text("Delivery.")
+    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Delivery.')")
     page.click("[data-tour] [data-mute]")
     assert page.evaluate("window.speechSynthesis.speaking") is False
-    expect(bar.locator("[data-tour-caption]")).to_contain_text("Delivery.")   # captions stay
+    expect(bar.locator("[data-tour-caption]")).to_contain_text("Delivery.")   # captions stay in sync
     n = page.evaluate("window.__spoken.length")
     page.click("[data-tour-next]")
-    page.wait_for_timeout(300)
-    assert page.evaluate("window.__spoken.length") == n         # muted: no narration
-    page.click("[data-tour] [data-mute]")                        # unmute
+    expect(bar.locator("[data-tour-caption]")).to_contain_text("Infrastructure.")
+    page.wait_for_timeout(400)
+    assert page.evaluate("window.__spoken.length") == n          # muted: no narration
+    page.click("[data-tour-play]")                               # explicit play unmutes and narrates
     page.wait_for_function(f"window.__spoken.length > {n}")
+    expect(page.locator("[data-tour] [data-mute]")).to_have_attribute("aria-pressed", "false")
     page.click("[data-tour-stop]")
     expect(bar).to_be_hidden()
     assert page.evaluate("window.speechSynthesis.speaking") is False
@@ -454,12 +467,13 @@ def test_tour_finish_and_free_exploration(browser):
 def test_speech_failure_shows_friendly_fallback(browser):
     page = home(browser, failing_tts("synthesis-failed"))
     page.click(".cta [data-tour-start]")
+    page.click("[data-tour-play]")
     note = page.locator("[data-tour-note]")
     expect(note).to_contain_text("Audio couldn't start")
-    expect(page.locator("[data-tour-retry]")).to_be_visible()
+    expect(page.locator("[data-tour-play]")).to_have_text("Try audio again")
     expect(page.locator("[data-tour-caption]")).to_contain_text("Delivery.")
     assert page.evaluate("window.__spoken.length") == 2          # retried once with another voice
-    page.click("[data-tour-retry]")
+    page.click("[data-tour-play]")
     expect(note).to_contain_text("Audio couldn't start")
     page.click("[data-tour-stop]")
     page.click("[data-welcome-play]")
@@ -473,7 +487,7 @@ def test_blocked_and_silent_speech(browser):
     expect(page.locator("[data-welcome-status]")).to_contain_text("needs a click")
     page = home(browser, SILENT_TTS)                              # speech that never starts
     page.click("[data-welcome-play]")
-    expect(page.locator("[data-welcome-status]")).to_contain_text("Audio couldn't start", timeout=10000)
+    expect(page.locator("[data-welcome-status]")).to_contain_text("Audio couldn't start", timeout=20000)
     assert not CODES.search(page.evaluate(STATUS_JS))
 
 
@@ -482,6 +496,7 @@ def test_no_speech_support_keeps_text_tour(browser):
     expect(page.locator("[data-welcome-play]")).to_be_disabled()
     expect(page.locator("[data-welcome-status]")).to_contain_text("can't read text aloud")
     page.click(".cta [data-tour-start]")
+    expect(page.locator("[data-tour-play]")).to_be_disabled()
     expect(page.locator("[data-tour-caption]")).to_contain_text("Delivery.")
     page.click("[data-tour-next]")
     expect(page.locator("[data-tour-caption]")).to_contain_text("Infrastructure.")
@@ -490,6 +505,7 @@ def test_no_speech_support_keeps_text_tour(browser):
 def test_speech_stops_when_leaving_page(browser):
     page = home(browser, HOLD_TTS)
     page.click(".cta [data-tour-start]")
+    page.click("[data-tour-play]")
     page.wait_for_function("window.speechSynthesis.speaking")
     page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide'))")
     assert page.evaluate("window.speechSynthesis.speaking") is False
@@ -537,3 +553,46 @@ def test_mobile_layout(browser):
     if HAS_RESUME:
         page.goto(BASE + "resume.html")
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+
+
+def test_resume_page(browser):
+    if not HAS_RESUME:
+        pytest.skip("resume not published")
+    page = home(browser, NO_SPEECH)
+    page.click(".cta [data-cta=resume]")
+    expect(page).to_have_url(re.compile(r"resume\.html$"))
+    expect(page.locator("#site-nav a[aria-current=page]")).to_have_text("Resume")
+    frame = page.locator("iframe.pdf-frame")
+    src = frame.get_attribute("src")
+    assert src.startswith("./assets/resume/") and ".pdf#toolbar=0" in src
+    assert (SITE / "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf").stat().st_size > 10000
+    imgs = page.locator(".pdf-pages img")
+    expect(imgs).to_have_count(3)
+    # the PDF itself (or its page images) is the only visible resume; no download button
+    assert page.locator("a[download], a[href$='.pdf'], a[href$='.docx']").count() == 0
+    assert "Download" not in page.locator("main").inner_text()
+    heads = [h.text_content() for h in page.locator("article.sr-only h3").all()]
+    assert heads[0].startswith("Senior DevOps Engineer") and len(heads) == 4
+    # phones: page images instead of the PDF frame
+    m = browser.new_page(viewport={"width": 390, "height": 844})
+    m.goto(BASE + "resume.html")
+    expect(m.locator("iframe.pdf-frame")).to_be_hidden()
+    expect(m.locator(".pdf-pages img").first).to_be_visible()
+    m.wait_for_function("[...document.querySelectorAll('.pdf-pages img')].slice(0,1).every(i => i.complete && i.naturalWidth > 1000)")
+    assert m.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+
+
+def test_phone_diagrams_are_readable(browser):
+    page = home(browser, NO_SPEECH, viewport={"width": 390, "height": 844})
+    for key in ("delivery", "infrastructure", "reliability"):
+        page.click(f"[data-tab={key}]")
+        narrow = page.locator(f"#arch-{key} .arch-narrow svg")
+        expect(narrow).to_be_visible()
+        expect(page.locator(f"#arch-{key} .arch-wide")).to_be_hidden()
+        box = narrow.bounding_box()
+        vb_w = float(narrow.get_attribute("viewBox").split()[2])
+        assert box["width"] / vb_w >= 0.85, (key, box["width"])     # 12.5px labels render at 10.6px or larger
+        assert box["x"] >= 0 and box["x"] + box["width"] <= 390
+        ids = page.evaluate(f"[...document.querySelectorAll('#arch-{key} .arch-narrow [marker-end]')].map(e => e.getAttribute('marker-end'))")
+        assert ids and all(i.startswith(f"url(#{key}-m-") for i in ids)
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")

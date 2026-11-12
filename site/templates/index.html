@@ -14,7 +14,7 @@
       </ul>
       <div class="cta">
         <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
-        {% if resume %}<a class="btn primary-alt" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
+        {% if resume %}<a class="btn primary" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
         <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
       </div>
     </div>
@@ -22,7 +22,6 @@
       <h2 class="welcome-title" id="welcome-h">Portfolio guide</h2>
       <p class="welcome-text" data-welcome-text>{{ welcome }}</p>
       <div class="welcome-actions">
-        <button type="button" class="btn small primary" data-tour-start>Start Portfolio Tour</button>
         <button type="button" class="btn small" data-welcome-play>Play welcome</button>
         <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
       </div>
@@ -33,7 +32,7 @@
     <div class="outcomes" role="group" aria-labelledby="outcomes-h">
       <p class="outcomes-label" id="outcomes-h">Professional experience · <span>{{ profile.impact_source }}</span></p>
       <ul>
-        {% for item in profile.impact %}<li><strong>{{ item.figure }}</strong><span>{{ item.label }}</span><span class="sr-only"> ({{ item.text }})</span></li>{% endfor %}
+        {% for item in profile.impact %}<li><span class="sr-only">{{ item.text }}</span><strong aria-hidden="true">{{ item.figure }}</strong><span aria-hidden="true">{{ item.label }}</span></li>{% endfor %}
       </ul>
     </div>
   </div>
@@ -50,7 +49,7 @@
     </div>
     {% for a in arch %}
     <figure class="arch-panel" id="arch-{{ a.key }}" role="tabpanel" aria-labelledby="tab-{{ a.key }}" data-panel="{{ a.key }}" tabindex="0">
-      <div class="arch-scroll"><span class="scroll-hint">Scroll sideways to see the whole diagram.</span>{{ a.svg | safe }}</div>
+      <div class="arch-scroll"><div class="arch-wide">{{ a.svg | safe }}</div><div class="arch-narrow">{{ a.svg_mobile | safe }}</div></div>
       <figcaption>
         <p><span class="lab-tag">Portfolio lab</span> {{ a.caption }}</p>
         <p class="arch-links"><a href="{{ root }}projects/{{ a.slug }}.html">{{ a.project }} case study</a> <a href="{{ root }}projects/{{ a.slug }}.html#architecture">Detailed diagrams</a></p>
@@ -94,7 +93,7 @@
       <article class="project-feature" data-lead="{{ p.slug }}">
         <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
         <p><span class="k">Problem</span> {{ p.home_problem }}</p>
-        <p><span class="k">Lab result</span> {{ p.home_result }}</p>
+        <p><span class="k">Lab result · {{ p.home_scope }}</span> {{ p.home_result }}</p>
         <p class="stack">{{ p.stack[:5] | join(' · ') }}</p>
         <div class="row-actions">
           <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
@@ -108,10 +107,11 @@
       <li>
         <div>
           <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
-          <p>{{ p.home_result }}</p>
+          <p><span class="scope-tag">{{ p.home_scope }}</span> {{ p.home_result }}</p>
         </div>
         <div class="row-links">
           <a href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
+          <a href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
           <a href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
         </div>
       </li>
@@ -164,7 +164,7 @@
     <div class="tour-controls">
       <button type="button" class="btn small" data-tour-back>Back</button>
       <button type="button" class="btn small primary" data-tour-next>Next</button>
-      <button type="button" class="btn small ghost" data-tour-retry hidden>Try audio again</button>
+      <button type="button" class="btn small" data-tour-play aria-pressed="false">Play narration</button>
       <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
       <button type="button" class="btn small ghost" data-tour-stop>Stop tour</button>
     </div>

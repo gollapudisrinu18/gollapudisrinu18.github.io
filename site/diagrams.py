@@ -54,8 +54,8 @@ def arrow(d, label=None, lx=None, ly=None, kind="", both=False, anchor="middle")
     return out
 
 
-def svg(name, h, title, desc, body):
-    return (f'<svg class="arch-svg" viewBox="0 0 {W} {h}" role="img" aria-labelledby="dg-{name}-t dg-{name}-d" '
+def svg(name, h, title, desc, body, w=W):
+    return (f'<svg class="arch-svg" viewBox="0 0 {w} {h}" role="img" aria-labelledby="dg-{name}-t dg-{name}-d" '
             f'xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">'
             f'<title id="dg-{name}-t">{escape(title)}</title><desc id="dg-{name}-d">{escape(desc)}</desc>'
             '<defs>'
@@ -158,5 +158,91 @@ def reliability():
                "cache fallback; a blameless postmortem records the timeline, error budget used and action items.", "".join(b))
 
 
+# ---------- narrow (phone) layouts: same relationships, stacked vertically ----------
+MW = 360
+
+
+def _chain(nodes, x=24, w=280, h=60, gap=26, y=14):
+    """Stack nodes vertically with arrows between them. nodes: (title, sub, kind). Returns (svg, ys)."""
+    out, ys = [], []
+    for i, (title, sub, kind) in enumerate(nodes):
+        out.append(box(x, y, w, h, title, sub, kind=kind))
+        ys.append(y)
+        if i < len(nodes) - 1:
+            out.append(arrow(f"M{x + w / 2},{y + h} V{y + h + gap - 4}"))
+        y += h + gap
+    return "".join(out), ys
+
+
+def delivery_mobile():
+    sub = ["helm upgrade --wait", "smoke test"]
+    nodes = [("Source change", ["push or pull request"], ""),
+             ("Azure Pipelines", ["validate: pytest"], "accent"),
+             ("Build image → ACR", ["one image, tag = Build ID"], "store"),
+             ("AKS orders-dev", sub, ""),
+             ("AKS orders-qa", sub, ""),
+             ("Approval gate", ["orders-prod environment"], "gate"),
+             ("AKS orders-prod", sub, "")]
+    body, ys = _chain(nodes, x=14, w=268, h=62, gap=24)
+    top = ys[-1] + 62 + 30
+    b = [body]
+    for i in (3, 4, 6):  # environments that smoke-test
+        y = ys[i] + 31
+        b.append(f'<path class="dg-edge dg-edge-fail" d="M282,{y} H{326}"/>')
+    b.append(f'<path class="dg-edge dg-edge-fail" d="M326,{ys[3] + 31} V{top - 4}" marker-end="url(#MK-arrow-fail)"/>')
+    b.append(f'<text class="dg-label dg-label-fail" x="320" y="{ys[3] + 18}" font-size="12" text-anchor="end">on failure</text>')
+    b.append(f'<rect class="dg-fail-zone" x="14" y="{top}" width="332" height="96" rx="10"/>')
+    b.append(_text_lines(180, top + 26, ["Smoke test fails → helm rollback", "to the recorded revision → re-check"], "dg-title dg-fail-text", 14, 600, gap=19))
+    b.append(_text_lines(180, top + 74, ["Stage fails; later environments are not deployed"], "dg-sub", 12.5))
+    return svg("delivery-m", top + 110, "Delivery architecture (portfolio lab), phone layout",
+               "Source change, Azure Pipelines validation, one image built in ACR, then AKS dev, qa, an approval gate and prod. "
+               "Each AKS deployment runs a smoke test; a failure rolls back to the recorded Helm revision and stops later stages.",
+               "".join(b), w=MW)
+
+
+def infrastructure_mobile():
+    b = []
+    b.append(group(14, 12, 332, 110, "Hub VNet  10.0.0.0/16"))
+    b.append(box(28, 50, 150, 56, ["snet-shared-", "services"], [], kind="subnet"))
+    b.append(box(186, 50, 146, 56, "snet-management", [], kind="subnet"))
+    b.append(arrow("M120,122 V156", "peering", 128, 144, both=True, anchor="start"))
+    b.append(group(14, 160, 332, 196, "Spoke app  10.1.0.0/16", "own VNet + NSGs"))
+    b.append(box(28, 214, 304, 58, "snet-workload", ["NSG: 443 from hub · deny Internet"], kind="subnet"))
+    b.append(box(28, 282, 304, 58, "snet-private-endpoints", ["pe-blob → 10.1.2.4"], kind="accent"))
+    b.append(arrow("M180,340 V386", "Private Link", 188, 368, anchor="start"))
+    b.append(box(44, 390, 272, 56, "Storage account", ["public network access disabled"], kind="store"))
+    b.append(group(14, 470, 332, 128, "Spoke data  10.2.0.0/16", "own VNet + NSGs"))
+    b.append(box(28, 524, 304, 58, "snet-workload", ["NSG: 443 from hub · deny Internet"], kind="subnet"))
+    b.append('<path class="dg-edge" d="M14,67 H6 V534 H10" marker-end="url(#MK-arrow)" marker-start="url(#MK-arrow)"/>')
+    b.append('<text class="dg-label" x="22" y="462" font-size="12">peering (hub ↔ data)</text>')
+    b.append(box(44, 620, 272, 74, ["Private DNS zone"], ["privatelink.blob.core.windows.net", "linked to hub, app and data"], kind="store"))
+    return svg("infrastructure-m", 708, "Infrastructure architecture (portfolio lab), phone layout",
+               "Hub VNet peered with an app spoke and a data spoke. The app spoke has NSG-protected subnets and a private endpoint "
+               "(10.1.2.4) to a storage account with public access disabled. The privatelink.blob private DNS zone is linked "
+               "to the hub, app and data VNets.", "".join(b), w=MW)
+
+
+def reliability_mobile():
+    b = []
+    b.append(box(14, 14, 332, 60, "checkout-api", ["OpenTelemetry SDK · latency histogram"]))
+    b.append(arrow("M95,74 V98"))
+    b.append(arrow("M265,74 V98"))
+    b.append(box(14, 102, 162, 64, "Metrics", ["Prometheus rules"]))
+    b.append(box(184, 102, 162, 64, "Traces", ["OTel Collector"]))
+    b.append(arrow("M95,166 V190"))
+    b.append(box(14, 194, 332, 72, "SLO burn-rate alert", ["99% of checkouts < 300 ms / 30 days", "page at 14.4x · ticket at 6x"], kind="gate"))
+    b.append(arrow("M180,266 V296", "page to on-call", 188, 286, anchor="start"))
+    b.append(box(14, 300, 332, 64, "Investigate", ["span timings: inventory.lookup ≈ 800 ms"], kind="accent"))
+    b.append('<path class="dg-edge dg-edge-link" d="M346,134 H352 V332 H350" marker-end="url(#MK-arrow)"/>')
+    b.append(arrow("M180,364 V390"))
+    b.append(box(14, 394, 332, 60, "Mitigate", ["cache fallback · burn rate back to 0x"]))
+    b.append(arrow("M180,454 V480"))
+    b.append(box(14, 484, 332, 60, "Postmortem", ["timeline, budget used, action items"]))
+    return svg("reliability-m", 558, "Reliability architecture (portfolio lab), phone layout",
+               "checkout-api emits metrics and traces. A latency SLO with burn-rate alerts pages on-call; traces point to "
+               "inventory.lookup; the cache fallback mitigates; a blameless postmortem follows.", "".join(b), w=MW)
+
+
 def all_diagrams():
-    return {"delivery": delivery(), "infrastructure": infrastructure(), "reliability": reliability()}
+    return {"delivery": delivery(), "infrastructure": infrastructure(), "reliability": reliability(),
+            "delivery_m": delivery_mobile(), "infrastructure_m": infrastructure_mobile(), "reliability_m": reliability_mobile()}

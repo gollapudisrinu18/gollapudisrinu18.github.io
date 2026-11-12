@@ -49,5 +49,17 @@ Checked in the build workspace on 12 Nov 2026 (Python 3.13, Node 22, Chrome, Pla
 
 Not verifiable here: real speaker output, Safari/Firefox autoplay behaviour, and the resume page (waiting for the approved resume).
 
+## Resume, narration and mobile diagrams (12 Nov 2026)
+
+| Check | Result |
+|---|---|
+| Resume files | Approved `.docx` had no GitHub, repository or project links; one clickable Portfolio line added to the contact band. Text diff against the original: only that line. DOCX validated; PDF renders on 3 pages like the original; both contain exactly one external link (the portfolio URL) |
+| View Resume | Hero button and Resume nav item open `resume.html`, which shows the PDF (desktop) or page images (phones / no PDF viewer). No download button. Screen-reader text matches the approved resume |
+| Contact data | The site's own pages and the assistant show the email from the resume; the phone number appears only inside the published resume PDF |
+| Narration | Reproduced Delivery → Infrastructure in Chrome 157 / Windows 4 times: each step change cancelled the previous utterance and the new one started (local voice). Most likely cause of the reported "Audio couldn't start": the 3.5 s start watchdog firing while Windows' speech engine was still starting, and it cancelled speech Chrome already reported as playing. Fixed: speech reported as playing counts as started, 6 s start window, 200 ms settle + resume after cancel, one retry. Narration now starts only from Play narration |
+| Prerecorded narration | Not possible here: no speech engine in the build environment and the recorded demos have no voice track |
+| Phone diagrams | Vertical layouts for delivery, infrastructure and reliability at ≤ 640 px, rendered at ≥ 0.85 scale, no sideways scroll |
+| Tests | Node 23/23, browser 34/34 |
+
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.

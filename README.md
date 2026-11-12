@@ -35,9 +35,9 @@ Every project folder has a `README.md` (setup, expected results, Azure prerequis
 
 - **Navigation:** Experience, Projects, Architecture, Resume and Ask.
 - **Architecture overview:** three diagrams drawn from the project source: delivery (Azure Pipelines → ACR → Dev/QA/Prod on AKS with an approval gate, smoke tests and rollback), infrastructure (Terraform hub-and-spoke, NSGs, private endpoint, private DNS) and reliability (metrics and traces → SLO burn-rate alert → investigation → mitigation → postmortem). They are generated as inline SVG by `site/diagrams.py`.
-- **Portfolio tour:** a welcome panel and a short narrated tour of the three diagrams, with Next, Back, Stop, Mute and captions. It uses the browser's text-to-speech, falls back to text when audio is blocked or unavailable, never repeats the automatic greeting in the same session, and never uses the microphone.
+- **Portfolio tour:** a welcome panel and a short tour of the three diagrams with captions, Next, Back, Stop and Mute. Narration starts from **Play narration** using the browser's text-to-speech; each step change cancels the previous narration; when audio is blocked or unavailable the captions carry the tour and a "Try audio again" control appears. The tour never uses the microphone.
 - **Ask My Portfolio:** typed questions (voice input optional) answered from the resume and the case studies. Answers are labelled as work experience or portfolio lab, and link to the relevant diagram, case study, walkthrough or resume. English and Telugu.
-- **Resume:** a readable HTML resume page, built from `site/src/resume.json` when that file is present. The website offers viewing only.
+- **Resume:** *View Resume* opens the approved resume as a PDF inside the portfolio (`resume.html`). Desktop browsers show it in their PDF viewer; phones and browsers without one see images of the same pages. There is no download button (browser PDF viewers have their own save controls). A text version from `site/src/resume.json` is available to screen readers.
 
 ## Run everything locally
 
@@ -77,14 +77,21 @@ site/
   diagrams.py                        architecture overview diagrams (SVG)
   src/content.json                   profile, experience, skills and case study content
   src/kb-extra.json                  assistant samples, welcome text and Telugu answers
-  src/resume.json                    resume content for the View Resume page (optional)
+  src/resume.json                    resume text (from the approved .docx) for screen readers and the assistant
+  static/assets/resume/              the resume PDF shown on the site and its page images
   templates/, static/                page templates, CSS, JavaScript (speech, tour, assistant), videos
-tools/                               demo capture and recording, issue import, Mermaid check, configure, resume update
+tools/                               demo capture and recording, issue import, Mermaid check, configure
 tests/site/                          assistant tests (Node) and browser tests (Playwright)
 profile/README.md                    GitHub profile README
 docs/VERIFICATION.md                 what was checked, and what still needs Azure
 .github/workflows/                   CI and GitHub Pages deployment
 ```
+
+## Update the resume
+
+1. Put the approved resume PDF at `site/static/assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf`.
+2. Regenerate the page images: `pdftoppm -png -r 150 <pdf> site/static/assets/resume/resume-page`, then convert to WebP (or keep PNG and update the names).
+3. Update `site/src/resume.json` if the wording changed, then run `python site/build_site.py`.
 
 ## Import the issue backlogs
 

@@ -83,15 +83,22 @@
   function speak(text, opts) {
     opts = opts || {};
     if (!synth) { if (opts.onfail) opts.onfail("unsupported"); return null; }
+    var hadJob = !!current;
     if (current) stop();
     var job = { id: ++seq, opts: opts, parts: sentences(text), i: 0, started: false, retried: false, cancelled: false };
     current = job;
     ready.then(function () {
       if (job.cancelled) return;
       if (opts.lang === "te" && !hasVoice("te")) { current = null; if (opts.onfail) opts.onfail("no-voice"); return; }
-      // Chrome can drop an utterance queued in the same tick as cancel(); wait a moment.
-      setTimeout(function () { if (!job.cancelled) next(job); }, (synth.speaking || synth.pending) ? 80 : 0);
-      if (synth.speaking || synth.pending) { try { synth.cancel(); } catch (e) { /* ignore */ } }
+      // Chrome (notably on Windows) can drop or stall an utterance queued right after cancel():
+      // let the engine settle, make sure it is not left paused, then speak.
+      var busy = synth.speaking || synth.pending;
+      if (busy) { try { synth.cancel(); } catch (e) { /* ignore */ } }
+      setTimeout(function () {
+        if (job.cancelled) return;
+        try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ }
+        next(job);
+      }, busy || hadJob ? 200 : 0);
     });
     return job.id;
   }
@@ -133,17 +140,33 @@
       var err = e && e.error;
       if (err === "interrupted" || err === "canceled") return;           // stopped on purpose
       if (err === "not-allowed") return fail(job, "blocked");
-      if (!job.retried) { job.retried = true; return next(job, null); }  // retry with the default voice
+      if (!job.retried) {                                                  // retry once with the default voice
+        job.retried = true;
+        return setTimeout(function () { if (!job.cancelled) next(job, null); }, 250);
+      }
       fail(job, "failed");
     };
-    // Watchdog: some browsers drop speech silently.
+    // Watchdog: some browsers drop speech silently. The first utterance of a session can take
+    // several seconds to start on Windows, and some voices never fire "start" at all, so speech
+    // that the browser reports as playing counts as started.
     job.timer = setTimeout(function () {
       if (settled || job.cancelled || job.started) return;
+      if (synth.speaking && !synth.pending) { u.onstart(); return; }
       if (!activated()) return fail(job, "blocked");
-      if (!job.retried) { job.retried = true; try { synth.cancel(); } catch (e) { /* ignore */ } release(); return next(job, null); }
+      if (!job.retried) {
+        job.retried = true;
+        try { synth.cancel(); } catch (e) { /* ignore */ }
+        release();
+        setTimeout(function () {
+          if (job.cancelled) return;
+          try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ }
+          next(job, null);
+        }, 250);
+        return;
+      }
       release();
       fail(job, "failed");
-    }, 3500);
+    }, 6000);
     try {
       if (synth.paused) synth.resume();
       synth.speak(u);

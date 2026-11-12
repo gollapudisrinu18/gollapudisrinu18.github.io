@@ -399,3 +399,30 @@ body.rec .stage-head strong::after { content: " · " attr(data-title); font-weig
   body.touring .arch-svg { width: auto; min-width: 0; max-width: 100%; max-height: max(250px, calc(100vh - 320px)); }
   body.touring .arch-scroll { padding: .6rem 1rem; }
 }
+.resume-sub { margin: 0 0 .7rem; font-weight: 600; color: var(--navy); font-size: .95rem; }
+.resume-tags { list-style: none; padding: 0 !important; display: flex; flex-wrap: wrap; gap: .35rem; }
+.resume-tags li { margin: 0 !important; font-size: .88rem; padding: .2rem .6rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); }
+.resume .env { font-size: .92rem; color: var(--muted); font-style: italic; margin: 0 0 .4rem; }
+.resume .env span { font-weight: 700; color: var(--navy); }
+.resume h4 { font-size: .95rem; margin: .7rem 0 .25rem; color: var(--navy); }
+.resume .skills dt { font-size: .9rem; }
+.resume-wrap .breadcrumb { margin-bottom: 1rem; }
+.resume-back { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.4rem; }
+.scope-tag { font-size: .74rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-right: .3rem; }
+.arch-narrow { display: none; }
+@media (max-width: 640px) {
+  .arch-wide { display: none; }
+  .arch-narrow { display: block; }
+  .arch-narrow .arch-svg { min-width: 0 !important; width: 100%; max-width: 420px; max-height: none !important; }
+  .arch-scroll { padding: .8rem .6rem; }
+}
+/* resume: PDF view only */
+.resume-page-title { font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 1rem; }
+.resume-wrap { max-width: 1000px; }
+.resume-viewer { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #525659; box-shadow: var(--shadow); }
+.pdf-frame { display: block; width: 100%; height: min(1300px, calc(100vh - 150px)); min-height: 560px; border: 0; }
+.pdf-pages { display: none; padding: .6rem; gap: .6rem; flex-direction: column; background: #e9edf2; }
+.pdf-pages img { display: block; width: 100%; height: auto; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+@media (max-width: 900px) { .pdf-frame { display: none; } .pdf-pages { display: flex; } .pdf-pages[aria-hidden] { } }
+.resume-viewer.no-pdf .pdf-frame { display: none; }
+.resume-viewer.no-pdf .pdf-pages { display: flex; }

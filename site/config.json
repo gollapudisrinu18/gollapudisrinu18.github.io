@@ -5,7 +5,7 @@
   "pages_url": "https://gollapudisrinu18.github.io/my-profile/",
   "site_title": "Srinivasa Rao Gollapudi · Azure DevOps & SRE Portfolio",
   "contact": {
-    "email": ""
+    "email": "gollapudi.srinu18@gmail.com"
   },
-  "_contact_help": "email: public address from the approved resume; empty hides it. The View Resume page is built from site/src/resume.json when that file exists."
+  "_contact_help": "email: public address from the approved resume (phone number deliberately not published). The View Resume page is built from site/src/resume.json."
 }

@@ -326,6 +326,11 @@ def build_kb(content, extra, projects, resume=None, email=""):
                            "the 14.4x paging threshold. Span timings point to inventory.lookup, the cache fallback is enabled, "
                            "and the burn rate returns to 0x. The full timeline and postmortem are on the case study page.")
             e["answer_te"] = te["incident-demo"]
+    if resume:  # every career answer offers the resume page
+        for e in entries:
+            if e["kind"] == "career" or e["id"] in ("contact", "availability", "certifications"):
+                if not any(l["href"] == "resume.html" for l in e["links"]):
+                    e["links"] = [{"label": "View resume", "href": "resume.html"}] + e["links"]
     samples = [q for q in extra["samples"] if resume or "resume" not in q.lower()]
     return {"version": 1, "unavailable": extra["unavailable"], "unavailable_te": extra["unavailable_te"],
             "samples": samples, "entries": entries}
@@ -439,15 +444,15 @@ def main():
     svgs = diagrams.all_diagrams()
     arch = [
         {"key": "delivery", "label": "Delivery", "slug": "aks-delivery-platform", "project": "AKS Delivery Platform",
-         "svg": svgs["delivery"],
+         "svg": svgs["delivery"], "svg_mobile": svgs["delivery_m"],
          "caption": "One image built in ACR is promoted Dev → QA → Prod on AKS, with an approval gate before Production. "
                     "Every deployment is smoke-tested and a failure rolls back to the previous Helm revision."},
         {"key": "infrastructure", "label": "Infrastructure", "slug": "azure-hub-spoke-terraform",
-         "project": "Hub-and-Spoke Terraform", "svg": svgs["infrastructure"],
+         "project": "Hub-and-Spoke Terraform", "svg": svgs["infrastructure"], "svg_mobile": svgs["infrastructure_m"],
          "caption": "Terraform builds a hub and two peered spokes with NSGs. Storage is reached only through a private "
                     "endpoint, and the private DNS zone is linked to every VNet."},
         {"key": "reliability", "label": "Reliability", "slug": "aks-observability-sre-lab",
-         "project": "Observability and SRE Incident Lab", "svg": svgs["reliability"],
+         "project": "Observability and SRE Incident Lab", "svg": svgs["reliability"], "svg_mobile": svgs["reliability_m"],
          "caption": "Metrics and traces feed a latency SLO with burn-rate alerts. A page leads to trace-led investigation, "
                     "a cache-fallback mitigation and a blameless postmortem."},
     ]
@@ -458,7 +463,12 @@ def main():
               prev=projects[i - 1] if i else None, next=projects[i + 1] if i + 1 < len(projects) else None)
         write(f"demos/{pr['slug']}.html", "demo.html", p=pr, nav="projects")
     if resume:
-        write("resume.html", "resume.html", nav="resume")
+        rdir = os.path.join(STATIC, "assets", "resume")
+        pdf = "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf"
+        pages = sorted(f"assets/resume/{f}" for f in os.listdir(rdir) if f.startswith("resume-page-"))
+        if not os.path.exists(os.path.join(STATIC, pdf)) or not pages:
+            sys.exit("resume.json exists but the resume PDF or its page images are missing in site/static/assets/resume")
+        write("resume.html", "resume.html", nav="resume", resume_pdf=pdf, resume_pages=pages)
     write("404.html", "404.html")
     with open(os.path.join(OUT, ".nojekyll"), "w") as fh:
         fh.write("")

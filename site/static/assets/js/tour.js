@@ -3,6 +3,8 @@
  * - The welcome is attempted once per browser tab session: straight away if the browser
  *   allows audio, otherwise on the visitor's first click or key press. Muting or using the
  *   welcome/tour controls also counts, so it is never repeated automatically.
+ * - The tour opens with captions only. Narration starts when the visitor presses Play narration;
+ *   after that each step change cancels the previous narration and narrates the new step.
  * - Captions are always shown, so the tour works muted or without audio support.
  * - sessionStorage holds only two flags: welcome tried, and muted.
  */
@@ -23,7 +25,8 @@
   var backBtn = bar.querySelector("[data-tour-back]");
   var nextBtn = bar.querySelector("[data-tour-next]");
   var stopBtn = bar.querySelector("[data-tour-stop]");
-  var retryBtn = bar.querySelector("[data-tour-retry]");
+  var playNarr = bar.querySelector("[data-tour-play]");
+  var narrating = false;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var KEY_TRIED = "portfolio.welcome.autoplayed";
@@ -129,13 +132,25 @@
     // Scroll the diagram itself to the top so as much of it as possible sits above the tour bar.
     target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   }
+  function renderPlay(state) {
+    playNarr.setAttribute("aria-pressed", String(narrating));
+    playNarr.textContent = state === "failed" ? "Try audio again" : (narrating ? "Replay narration" : "Play narration");
+  }
   function narrate() {
+    var at = step;
     noteEl.textContent = "";
-    retryBtn.hidden = true;
-    if (muted) return;
+    if (muted || !narrating) { S.stop(); renderPlay(); return; }
+    renderPlay();
+    noteEl.textContent = "Starting narration…";
     S.speak(STEPS[step].say, {
       lang: "en",
-      onfail: function (reason) { noteEl.textContent = friendly(reason); retryBtn.hidden = reason === "unsupported"; }
+      onstart: function () { if (step === at) noteEl.textContent = "Narrating: " + STEPS[at].title + "."; },
+      onend: function (info) { if (step === at && /^(Narrating|Starting)/.test(noteEl.textContent)) noteEl.textContent = ""; },
+      onfail: function (reason) {
+        if (step !== at) return;
+        noteEl.textContent = friendly(reason);
+        renderPlay(reason === "unsupported" ? "" : "failed");
+      }
     });
   }
   function show(n) {
@@ -152,7 +167,9 @@
   function startTour() {
     disarm();
     sset(KEY_TRIED, "1");
+    S.stop();
     welcome.classList.remove("speaking");
+    narrating = false;
     bar.hidden = false;
     document.body.classList.add("touring");
     show(0);
@@ -160,6 +177,7 @@
   }
   function stopTour(message) {
     S.stop();
+    narrating = false;
     step = -1;
     bar.hidden = true;
     document.body.classList.remove("touring");
@@ -176,10 +194,14 @@
   backBtn.addEventListener("click", function () { show(step - 1); });
   stopBtn.addEventListener("click", function () {
     stopTour("Tour stopped.");
-    var start = welcome.querySelector("[data-tour-start]");
+    var start = document.querySelector("[data-tour-start]");
     if (start) start.focus({ preventScroll: true });
   });
-  retryBtn.addEventListener("click", narrate);
+  playNarr.addEventListener("click", function () {
+    if (muted) setMuted(false);
+    narrating = true;
+    narrate();
+  });
   playBtn.addEventListener("click", function () {
     disarm();
     sset(KEY_TRIED, "1");
@@ -191,7 +213,7 @@
       disarm();
       sset(KEY_TRIED, "1");
       setMuted(!muted);
-      if (step >= 0 && !muted) narrate();
+      if (step >= 0) { if (muted) narrating = false; narrate(); }
       if (step < 0) wStatus.textContent = muted ? "Sound is off. Captions and text stay on screen." : "Sound is on.";
     });
   });
@@ -201,6 +223,8 @@
 
   renderMute();
   if (!S.supported) {
+    playNarr.disabled = true;
+    playNarr.setAttribute("aria-disabled", "true");
     playBtn.disabled = true;
     playBtn.setAttribute("aria-disabled", "true");
     muteBtns.forEach(function (b) { b.hidden = true; });

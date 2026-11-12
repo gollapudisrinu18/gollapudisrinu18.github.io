@@ -98,7 +98,14 @@ test("every link in the knowledge base points to a built page or https URL", () 
   }
 });
 
-test("no private contact details in the knowledge base", () => {
-  const s = JSON.stringify(data);
-  assert.ok(!/996657718|gollapudi\.srinu18@/.test(s));
+test("phone number is never published", () => {
+  assert.ok(!/996657718/.test(JSON.stringify(data)));
+});
+
+test("career answers link to the resume page when it exists", () => {
+  if (!fs.existsSync(path.join(__dirname, "../../_site/resume.html"))) return;
+  for (const id of ["about", "azure-devops", "sre", "experience", "availability", "contact", "resume"]) {
+    const e = data.entries.find(x => x.id === id);
+    assert.ok(e.links.some(l => l.href === "resume.html"), id);
+  }
 });

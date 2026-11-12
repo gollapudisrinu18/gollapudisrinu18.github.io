@@ -5,7 +5,7 @@
     "availability": "Immediate joiner · Open to fully remote roles",
     "location": "Bangalore, India",
     "summary": "Senior DevOps Engineer and Site Reliability Engineer with 11+ years in IT. I moved from Linux and Windows Server administration into Microsoft Azure infrastructure, Azure DevOps CI/CD, AKS platform operations and SRE for enterprise clients in the UK and US. My recent work covers Azure Pipelines, AKS, ACR, Terraform, Entra ID, Key Vault and Azure Policy, L3 on-call escalation, SLOs and error budgets, and blameless postmortems.",
-    "intro": "Senior Azure DevOps Engineer and Site Reliability Engineer with 11+ years in IT, building Azure DevOps CI/CD pipelines that ship to AKS on infrastructure defined in Terraform. On the reliability side I set SLOs and error budgets, alert on burn rate instead of noise, take L3 on-call and write blameless postmortems.",
+    "intro": "I build Azure DevOps CI/CD pipelines that ship to AKS on infrastructure defined in Terraform, and keep those services reliable with SLOs, burn-rate alerting, L3 on-call and blameless postmortems.",
     "impact": [
       {
         "figure": "10+",
@@ -247,7 +247,8 @@
         "aks delivery",
         "delivery platform",
         "smoke test"
-      ]
+      ],
+      "home_scope": "ran locally"
     },
     {
       "slug": "aks-observability-sre-lab",
@@ -329,7 +330,8 @@
         "observability",
         "slo",
         "burn-rate"
-      ]
+      ],
+      "home_scope": "local run and simulation"
     },
     {
       "slug": "azure-hub-spoke-terraform",
@@ -400,7 +402,8 @@
         "network",
         "infrastructure",
         "terraform"
-      ]
+      ],
+      "home_scope": "simulated DNS model"
     },
     {
       "slug": "azure-devsecops-supply-chain",
@@ -465,7 +468,8 @@
         "kyverno",
         "signed image",
         "admission"
-      ]
+      ],
+      "home_scope": "ran locally"
     },
     {
       "slug": "azure-functions-event-processing",
@@ -526,7 +530,8 @@
         "poison",
         "retry",
         "event processing"
-      ]
+      ],
+      "home_scope": "local queue runtime"
     },
     {
       "slug": "azure-dr-restore-drill",
@@ -586,7 +591,8 @@
         "rto",
         "rpo",
         "dr drill"
-      ]
+      ],
+      "home_scope": "ran locally"
     }
   ]
 }

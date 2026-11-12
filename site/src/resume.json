@@ -1,0 +1,225 @@
+{
+  "name": "Srinivasa Rao Gollapudi",
+  "title": "Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)",
+  "subtitle": "Immediate Joiner | Remote Only",
+  "contact": [
+    {
+      "text": "Bangalore, India"
+    },
+    {
+      "text": "gollapudi.srinu18@gmail.com",
+      "href": "mailto:gollapudi.srinu18@gmail.com"
+    }
+  ],
+  "source": "Approved resume: Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume.docx (12 Nov 2026)",
+  "sections": [
+    {
+      "heading": "Professional Summary",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Senior DevOps Engineer and Site Reliability Engineer with 11+ years in IT, progressing from Linux and Windows Server administration into Microsoft Azure infrastructure, Azure DevOps CI/CD, AKS platform operations and SRE for enterprise clients in the UK and US, including LSEG (London Stock Exchange Group), MITIE and United Health. Hands-on with Azure Pipelines (multi-stage YAML), AKS, ACR, Helm, Terraform, Entra ID, Azure Key Vault, Azure Policy, Azure RBAC, Azure Monitor and Log Analytics. Recent work includes L3 escalation in a 24x7 on-call rotation, defining SLOs and error budgets with application teams, writing blameless postmortems and planning disaster recovery against RTO/RPO targets. Comfortable working independently in remote, distributed teams across time zones and mentoring engineers on pipeline practices."
+        }
+      ]
+    },
+    {
+      "heading": "Core Competencies",
+      "blocks": [
+        {
+          "type": "tags",
+          "items": [
+            "Azure DevOps (Azure Pipelines, Azure Repos)",
+            "Multi-Stage YAML Pipelines",
+            "CI/CD and Release Automation",
+            "Site Reliability Engineering (SRE)",
+            "SLI/SLO and Error Budgets",
+            "Incident Response and On-Call",
+            "Root Cause Analysis and Postmortems",
+            "Azure Kubernetes Service (AKS)",
+            "Docker and Helm",
+            "Terraform and Infrastructure as Code (IaC)",
+            "Azure Networking and Security",
+            "DevSecOps",
+            "Observability and Monitoring",
+            "Disaster Recovery (RTO/RPO)",
+            "Linux and Windows Server Administration"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "Technical Skills",
+      "blocks": [
+        {
+          "type": "skills",
+          "rows": [
+            [
+              "Microsoft Azure",
+              "Virtual Machines, Virtual Network (VNet), hub-spoke topology, NSG, Private Endpoints, Azure Firewall, Application Gateway (WAF), Azure Front Door, App Service, Azure Functions, Storage, Entra ID, Azure Key Vault, Azure RBAC, Azure Policy, Azure Monitor, Log Analytics, Microsoft Defender for Cloud, Azure Cost Management"
+            ],
+            [
+              "Azure DevOps & CI/CD",
+              "Azure Pipelines (multi-stage YAML, reusable templates, environment approvals), Azure Repos, Git, GitHub Actions, Jenkins (Groovy shared libraries), GitLab CI, Argo CD, Argo Rollouts (canary, blue/green), build and release automation"
+            ],
+            [
+              "Containers & Orchestration",
+              "Azure Kubernetes Service (AKS), Azure Container Registry (ACR), Kubernetes, Docker, Docker Compose, Helm, Kustomize, NGINX Ingress, cert-manager, Istio, HPA/Cluster Autoscaler, Network Policies, Pod Security Standards"
+            ],
+            [
+              "Infrastructure as Code",
+              "Terraform (reusable modules, remote state), Terragrunt, ARM Templates, Bicep, Ansible"
+            ],
+            [
+              "SRE & Observability",
+              "SLI/SLO/SLA, error budgets, 24x7 on-call, incident management, RCA, blameless postmortems, disaster recovery (RTO/RPO), DORA metrics, Azure Monitor, Log Analytics, Prometheus, Grafana, OpenTelemetry, ELK Stack, Fluent Bit, Loki, Datadog, Dynatrace, PagerDuty, Nagios"
+            ],
+            [
+              "DevSecOps",
+              "Azure Key Vault (Secrets Store CSI driver), Entra ID workload identity, HashiCorp Vault, OPA/Gatekeeper, Trivy, SonarQube, Checkmarx, GitHub Advanced Security, Dependabot, SBOM, Sigstore/Cosign, CIS Benchmarks"
+            ],
+            [
+              "Networking",
+              "DNS, load balancing, VPN, NGINX/Apache reverse proxy, SSL/TLS (Let's Encrypt), mTLS, network segmentation"
+            ],
+            [
+              "Scripting & OS",
+              "Bash/Shell, PowerShell, Python, Groovy, YAML; Linux administration, Windows Server"
+            ],
+            [
+              "Tools & Practices",
+              "GitHub, Bitbucket, Backstage, ServiceNow, Jira, Confluence, Agile/Scrum, ITIL"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "Professional Experience",
+      "blocks": [
+        {
+          "type": "role",
+          "title": "Senior DevOps Engineer",
+          "dates": "Feb 2026 – Sep 2026",
+          "org": "Pulse Data Labs | Bangalore, India | Client: URUS",
+          "env": "AKS, ACR, Azure DevOps, GitHub Actions, Terraform, Entra ID, Azure Policy, Azure RBAC, OPA/Gatekeeper, OpenTelemetry, PagerDuty, Backstage",
+          "groups": [
+            {
+              "heading": "",
+              "items": [
+                "Managed AKS workloads for the URUS enterprise SaaS platform, with container images in Azure Container Registry (ACR) and deployments through Azure DevOps and GitHub Actions pipelines.",
+                "Governed Azure access and configuration with Entra ID, Azure RBAC and Azure Policy, and ran OPA/Gatekeeper policy checks so compliance issues were caught before production.",
+                "Prepared disaster recovery plans for the Azure workloads aligned to agreed RTO and RPO targets.",
+                "Built reusable Terraform modules for Dev, QA and Production Azure environments and published them as self-service golden-path templates in Backstage.",
+                "Served as L3 escalation in a 24x7 PagerDuty on-call rotation, troubleshooting CrashLoopBackOff and OOMKilled pods, node pressure, ingress and DNS failures, and Terraform state drift.",
+                "Defined SLIs, SLOs and error budgets with application teams and tracked them on OpenTelemetry-based SLO dashboards.",
+                "Wrote blameless postmortems for production incidents, covering timeline, root cause and follow-up actions.",
+                "Added SBOM generation, Sigstore/Cosign image signing and SonarQube SAST/DAST checks to release pipelines."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "role",
+          "title": "DevOps Engineer",
+          "dates": "May 2024 – Feb 2026",
+          "org": "Teknip Technology Pvt Ltd | Bangalore, India | Client: MITIE",
+          "env": "Azure DevOps, AKS, ACR, Helm, Terraform, App Service, Azure Functions, Application Gateway (WAF), Front Door, Key Vault, Entra ID, Azure Monitor, Log Analytics, Istio, Datadog, Ansible",
+          "groups": [
+            {
+              "heading": "",
+              "items": [
+                "Promoted to lead platform reliability and high availability for 10+ MITIE client applications, mentoring a team of DevOps engineers."
+              ]
+            },
+            {
+              "heading": "Project: Azure AKS and App Service Modernization",
+              "items": [
+                "Created multi-stage Azure DevOps YAML pipelines with environment approvals, ACR image scanning and Helm deployments to AKS for 10+ applications, cutting release lead time from days to hours.",
+                "Built a hub-spoke VNet topology with Private Endpoints, Azure Firewall rules and NSGs, and deployed AKS and App Service workloads behind Application Gateway WAF and Azure Front Door.",
+                "Standardized Azure infrastructure as code with Terraform and automated configuration of 50+ VMs with Ansible.",
+                "Integrated Azure Key Vault with AKS through the Secrets Store CSI driver and Entra ID workload identity, removing hard-coded secrets from deployments.",
+                "Moved scheduled batch jobs to event-driven Azure Functions and set up Log Analytics workbooks and Azure Monitor alerts for each application.",
+                "Containerized legacy applications with Docker and packaged them as Helm charts for deployment to AKS."
+              ]
+            },
+            {
+              "heading": "Production Reliability and Security",
+              "items": [
+                "Set up centralized logging with the ELK Stack and Fluent Bit for AKS clusters, giving support teams one place to search application and audit logs during troubleshooting.",
+                "Tuned alerting with Datadog anomaly detection and Prometheus/Grafana alert rules, reducing false-positive alerts by ~45%.",
+                "Automated TLS certificate renewal with cert-manager and Let's Encrypt on NGINX Ingress, removing certificate-expiry outages.",
+                "Rolled out the Istio service mesh on AKS for traffic management, mutual TLS and canary releases.",
+                "Added Trivy, Checkmarx and OPA/Gatekeeper checks to pipelines to block vulnerable images and non-compliant Kubernetes manifests."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "role",
+          "title": "Technical Lead",
+          "dates": "Jul 2022 – Apr 2024",
+          "org": "Tech Mahindra | Hyderabad, India | Client: LSEG (London Stock Exchange Group)",
+          "env": "Azure DevOps (Azure Pipelines, YAML templates), AKS, Azure Monitor, GitHub Advanced Security, Dependabot, Jenkins, GitHub Actions, Python, PowerShell",
+          "groups": [
+            {
+              "heading": "",
+              "items": [
+                "Owned the Azure DevOps CI/CD platform for 20+ LSEG application modules, standardizing them on reusable Azure Pipelines YAML templates.",
+                "Converted manual release steps into reusable YAML pipeline templates for build and release automation, cutting deployment effort by 50%+.",
+                "Added secret scanning and dependency checks (GitHub Advanced Security, Dependabot) to release pipelines.",
+                "Built Jenkins shared libraries in Groovy and reusable GitHub Actions workflows so teams could onboard new services to CI/CD in hours instead of days.",
+                "Provisioned and hardened AKS clusters with Kubernetes network policies and Pod Security Standards.",
+                "Built Azure Monitor dashboards and led root cause analysis and postmortems on production incidents.",
+                "Mentored new engineers on Azure Pipelines authoring and Git branching standards.",
+                "Automated routine operational tasks with Python and PowerShell, saving 10+ hours a week."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "role",
+          "title": "Senior System Administrator (Cloud Infrastructure)",
+          "dates": "Feb 2015 – Jun 2022",
+          "org": "Venus Universal Limited | Bangalore, India | Client: United Health",
+          "env": "Linux, Windows Server, Microsoft Azure, Terraform, Bash/Shell, Azure Monitor, Nagios, NGINX, Apache",
+          "groups": [
+            {
+              "heading": "",
+              "items": [
+                "Progressed from Systems Administrator to cloud engineering responsibilities, managing Azure compute (Virtual Machines), networking and storage.",
+                "Supported the migration of critical on-premises workloads to Azure while keeping services available to users.",
+                "Administered Linux and Windows servers on-premises and in Azure, covering OS patching, backup automation, performance monitoring and troubleshooting.",
+                "Automated server provisioning with Bash/Shell scripts and introduced Terraform for infrastructure as code.",
+                "Set up centralized monitoring and alerting with Azure Monitor and Nagios.",
+                "Configured NGINX and Apache reverse proxies and load balancers with SSL/TLS for internal and customer-facing applications."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "Education",
+      "blocks": [
+        {
+          "type": "ul",
+          "items": [
+            "MBA, Marketing – Acharya Nagarjuna University (Don Bosco PG College), Guntur"
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "Additional Information",
+      "blocks": [
+        {
+          "type": "ul",
+          "items": [
+            "Availability: Immediate Joiner | Remote Only",
+            "Location: Bangalore, India"
+          ]
+        }
+      ]
+    }
+  ]
+}
