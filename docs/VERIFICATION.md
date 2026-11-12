@@ -71,7 +71,7 @@ Not verifiable here: real speaker output, Safari/Firefox autoplay behaviour, and
 | Audio | Nothing plays on load or on a first click elsewhere; intro plays only from Play intro, with transcript, Pause/Resume and Stop; tour narration Play/Pause/Resume, cancelled on step change; intro and tour never overlap; friendly fallbacks |
 | Paths | Full browser suite run with the site served under `/my-profile/` (as on GitHub Pages) and at the root: 39/39 both |
 | Tests | Node 23/23, browser 40/40 |
-| Live audio fix | Live Chrome run showed the engine finishing a sentence after Pause and the next sentence starting early; next sentence is now held until Resume (test added) |
+| Live audio fix | Live Chrome 157 / Windows: after speechSynthesis.pause() the engine finished the sentence, then the next sentence hung after resume() (speaking=true, no start/end for 9 s). Pause now cancels at the current sentence and Resume repeats that sentence; the engine's pause()/resume() is no longer used (test added) |
 
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.

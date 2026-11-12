@@ -445,10 +445,10 @@ def test_intro_play_pause_resume_stop(browser):
     expect(page.locator("[data-intro-status]")).to_contain_text("Playing")
     toggle.click()
     expect(toggle).to_have_text("Resume")
-    assert page.evaluate("window.__paused") == 1
+    assert page.evaluate("window.speechSynthesis.speaking") is False
     toggle.click()
     expect(toggle).to_have_text("Pause")
-    assert page.evaluate("window.__resumed") >= 1
+    page.wait_for_function("window.speechSynthesis.speaking")
     page.click("[data-intro-stop]")
     expect(toggle).to_have_text("Play")
     expect(page.locator("[data-intro-status]")).to_contain_text("stopped")
@@ -457,19 +457,22 @@ def test_intro_play_pause_resume_stop(browser):
     assert page.evaluate("window.__rec.length") == 0
 
 
-def test_pause_holds_the_next_sentence(browser):
-    """Chrome may finish the current sentence after pause(); the next one must wait for Resume."""
+def test_pause_stops_and_resume_repeats_sentence(browser):
+    """Pause must not rely on speechSynthesis.pause(): Chrome on Windows hangs the next sentence."""
     page = home(browser, HOLD_TTS)
     page.click("[data-intro-play]")
     page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Welcome')")
     page.click("[data-intro-toggle]")                       # Pause
-    page.evaluate("(() => { const u = window.speechSynthesis._u; window.speechSynthesis.speaking = false; u.onend(); })()")
+    assert page.evaluate("window.speechSynthesis.speaking") is False
+    assert page.evaluate("window.__paused || 0") == 0       # engine pause() is never used
     page.wait_for_timeout(400)
-    assert page.evaluate("window.__spoken.length") == 1     # nothing new spoken while paused
-    assert page.evaluate("window.__resumed || 0") == 0
+    assert page.evaluate("window.__spoken.length") == 1     # nothing new while paused
     page.click("[data-intro-toggle]")                       # Resume
     page.wait_for_function("window.__spoken.length === 2")
-    assert page.evaluate("window.__spoken[1].text").startswith("Explore")
+    assert page.evaluate("window.__spoken[1].text").startswith("Welcome")   # repeats the paused sentence
+    page.evaluate("window.speechSynthesis._u.onend()")      # finish it: next sentence follows
+    page.wait_for_function("window.__spoken.length === 3")
+    assert page.evaluate("window.__spoken[2].text").startswith("Explore")
 
 
 def test_tour_controls_and_captions(browser):
@@ -488,9 +491,10 @@ def test_tour_controls_and_captions(browser):
     expect(play).to_have_text("Pause narration")
     play.click()
     expect(play).to_have_text("Resume narration")
-    assert page.evaluate("window.__paused") == 1
+    assert page.evaluate("window.speechSynthesis.speaking") is False
     play.click()
     expect(play).to_have_text("Pause narration")
+    page.wait_for_function("window.speechSynthesis.speaking")
     page.click("[data-tour-next]")
     expect(bar.locator("[data-tour-step]")).to_have_text("Infrastructure · 2 of 4")
     expect(bar.locator("[data-tour-caption]")).to_contain_text("Infrastructure.")

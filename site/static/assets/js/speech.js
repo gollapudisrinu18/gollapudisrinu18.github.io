@@ -136,9 +136,8 @@
       if (settled) return;
       release();
       if (job.cancelled) return;
+      if (job.paused) return;   // stopped by pause(): resume() repeats this sentence
       job.i++;
-      // Chrome can finish the current sentence after pause(); hold the next one until resume().
-      if (job.paused) { job.held = true; return; }
       next(job);
     };
     u.onerror = function (e) {
@@ -176,7 +175,7 @@
       fail(job, "failed");
     }, 6000);
     try {
-      if (synth.paused && !job.paused) synth.resume();
+      if (synth.paused) synth.resume();
       synth.speak(u);
     } catch (err) {
       release();
@@ -186,20 +185,26 @@
 
   function isSpeaking() { return !!current; }
 
-  // Pause and resume the current narration. The start watchdog is suspended while paused.
+  // Pause and resume. speechSynthesis.pause()/resume() is unreliable: Chrome on Windows keeps
+  // speaking the current sentence and then hangs the next one (speaking=true, no events).
+  // So Pause cancels at the current sentence and Resume speaks that sentence again.
   function pause() {
     if (!current || !synth) return false;
     current.paused = true;
     clearTimeout(current.timer);
-    try { synth.pause(); } catch (e) { /* ignore */ }
+    try { synth.cancel(); } catch (e) { /* ignore */ }
     return true;
   }
   function resume() {
     if (!current || !synth) return false;
     var job = current;
+    if (!job.paused) return true;
     job.paused = false;
-    try { synth.resume(); } catch (e) { /* ignore */ }
-    if (job.held) { job.held = false; next(job); }
+    setTimeout(function () {
+      if (job.cancelled || job.paused) return;
+      try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ }
+      next(job);
+    }, 200);
     return true;
   }
   function isPaused() { return !!(current && current.paused); }
