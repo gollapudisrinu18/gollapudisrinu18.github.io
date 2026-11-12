@@ -61,5 +61,16 @@ Not verifiable here: real speaker output, Safari/Firefox autoplay behaviour, and
 | Phone diagrams | Vertical layouts for delivery, infrastructure and reliability at ≤ 640 px, rendered at ≥ 0.85 scale, no sideways scroll |
 | Tests | Node 23/23, browser 34/34 |
 
+## Recruiter layout, Azure palette and audio controls (12 Nov 2026)
+
+| Check | Result |
+|---|---|
+| Hero | View Projects + View Resume (primary); Play intro + Start Portfolio Tour + Intro transcript (secondary); employer outcomes card labelled as professional experience |
+| Featured projects | Directly after the hero; AKS Delivery and SRE Incident Lab cards show problem, what I built, verified result with Local/Simulated label, case study / recorded demo / interactive walkthrough links; other four labs listed with labels. No lab is labelled Azure-validated |
+| Delivery diagram | Rebuilt from `pipelines/azure-pipelines.yml`, `docs/approvals.md` (dev: none, qa: branch control, prod: approval + branch control) and `scripts/deploy_with_rollback.sh`: three stages each with helm upgrade and an explicit smoke test, approval gate inside Prod, pass/fail arrows, one rollback lane. Phone layout shows the same steps vertically. Delivery tab selected on load |
+| Audio | Nothing plays on load or on a first click elsewhere; intro plays only from Play intro, with transcript, Pause/Resume and Stop; tour narration Play/Pause/Resume, cancelled on step change; intro and tour never overlap; friendly fallbacks |
+| Paths | Full browser suite run with the site served under `/my-profile/` (as on GitHub Pages) and at the root: 39/39 both |
+| Tests | Node 23/23, browser 39/39 |
+
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.

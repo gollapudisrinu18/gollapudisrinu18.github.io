@@ -27,8 +27,8 @@
         <p>{{ p.environment }}</p>
         <table class="scope">
           <caption class="sr-only">Where each part of this lab was run</caption>
-          <thead><tr><th scope="col">Part of the lab</th><th scope="col">Status</th></tr></thead>
-          <tbody>{% for what, status in p.scope %}<tr><td>{{ what }}</td><td><span class="status-pill s-{{ status | lower | replace(' ', '-') }}">{{ status }}</span></td></tr>{% endfor %}</tbody>
+          <thead><tr><th scope="col">Part of the lab</th><th scope="col">Evidence</th></tr></thead>
+          <tbody>{% set cls = {'Local': 'local', 'Simulated': 'simulated', 'CI-validated': 'ci', 'Azure-validated': 'azure', 'Needs Azure (not yet run)': 'pending'} %}{% for what, status in p.scope %}<tr><td>{{ what }}</td><td><span class="scope-badge s-{{ cls[status] }}">{{ status }}</span></td></tr>{% endfor %}</tbody>
         </table>
       </section>
       <section id="architecture" aria-labelledby="arch-h">

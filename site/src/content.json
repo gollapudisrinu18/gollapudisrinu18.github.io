@@ -220,15 +220,15 @@
       "scope": [
         [
           "Release, smoke test and rollback flow (local Helm stand-in) and 7 unit tests",
-          "Ran locally"
+          "Local"
         ],
         [
           "helm lint and helm template for dev, qa and prod",
-          "Checked in CI"
+          "CI-validated"
         ],
         [
           "ACR build, AKS deployment and the Production approval",
-          "Not yet run on Azure"
+          "Needs Azure (not yet run)"
         ]
       ],
       "decisions": [
@@ -248,7 +248,10 @@
         "delivery platform",
         "smoke test"
       ],
-      "home_scope": "ran locally"
+      "home_built": "Multi-stage Azure Pipelines that build one image in ACR and promote it Dev → QA → Prod on AKS with Helm, an approval gate, smoke tests and automatic rollback.",
+      "result_scope": [
+        "Local"
+      ]
     },
     {
       "slug": "aks-observability-sre-lab",
@@ -294,24 +297,24 @@
         ]
       },
       "home_problem": "Checkout became slow while still returning HTTP 200, and nobody was paged.",
-      "home_result": "The 14.4x burn-rate page fired at 16 minutes; traces pointed to inventory.lookup; the fallback mitigated at 27 minutes.",
+      "home_result": "Simulated incident: the 14.4x burn-rate page fired at 16 minutes, traces pointed to inventory.lookup, and the fallback mitigated at 27 minutes. The live local demo showed the same 0x → 14.4x+ → 0x burn.",
       "environment": "checkout-api instrumented with the OpenTelemetry SDK and a Prometheus histogram; Prometheus recording and burn-rate rules, Grafana, and an OTel Collector. The SLO is 99% of POST /api/checkout within 300 ms over 30 days.",
       "scope": [
         [
           "Live incident demo against the instrumented service and 8 tests",
-          "Ran locally"
+          "Local"
         ],
         [
           "3-hour minute-by-minute incident timeline used for the postmortem",
-          "Simulation"
+          "Simulated"
         ],
         [
           "promtool check rules and promtool test rules",
-          "Checked in CI"
+          "CI-validated"
         ],
         [
           "Azure Managed Prometheus, Managed Grafana and Application Insights",
-          "Not yet run on Azure"
+          "Needs Azure (not yet run)"
         ]
       ],
       "decisions": [
@@ -331,7 +334,11 @@
         "slo",
         "burn-rate"
       ],
-      "home_scope": "local run and simulation"
+      "home_built": "An OpenTelemetry-instrumented checkout service with a latency SLO, multi-window burn-rate alerts, a runbook and a blameless postmortem.",
+      "result_scope": [
+        "Local",
+        "Simulated"
+      ]
     },
     {
       "slug": "azure-hub-spoke-terraform",
@@ -372,15 +379,15 @@
       "scope": [
         [
           "Static checks, 7 tests and the DNS resolution model built from Terraform output",
-          "Ran locally"
+          "Local"
         ],
         [
           "terraform validate and terraform test with a mocked provider",
-          "Checked in CI"
+          "CI-validated"
         ],
         [
           "terraform apply and nslookup from a VM in the spoke",
-          "Not yet run on Azure"
+          "Needs Azure (not yet run)"
         ]
       ],
       "decisions": [
@@ -403,7 +410,10 @@
         "infrastructure",
         "terraform"
       ],
-      "home_scope": "simulated DNS model"
+      "home_built": "Reusable Terraform modules for a hub and two spokes, NSGs, a private endpoint and private DNS links.",
+      "result_scope": [
+        "Simulated"
+      ]
     },
     {
       "slug": "azure-devsecops-supply-chain",
@@ -443,11 +453,11 @@
       "scope": [
         [
           "Real ECDSA P-256 signing in Cosign's payload format and a local admission webhook, 9 tests",
-          "Ran locally"
+          "Local"
         ],
         [
           "Trivy, Syft, Cosign, Kyverno on AKS and Workload ID",
-          "Not yet run on Azure"
+          "Needs Azure (not yet run)"
         ]
       ],
       "decisions": [
@@ -469,7 +479,10 @@
         "signed image",
         "admission"
       ],
-      "home_scope": "ran locally"
+      "home_built": "Trivy scans, an SBOM and Cosign signing with a Key Vault key, enforced at admission.",
+      "result_scope": [
+        "Local"
+      ]
     },
     {
       "slug": "azure-functions-event-processing",
@@ -507,11 +520,11 @@
       "scope": [
         [
           "Processor and local queue runtime, 19 tests (in-memory and SQLite stores)",
-          "Ran locally"
+          "Local"
         ],
         [
           "Function App, storage account and Application Insights",
-          "Not yet run on Azure"
+          "Needs Azure (not yet run)"
         ]
       ],
       "decisions": [
@@ -531,7 +544,10 @@
         "retry",
         "event processing"
       ],
-      "home_scope": "local queue runtime"
+      "home_built": "A queue-triggered Function with idempotency, retry classification and poison handling.",
+      "result_scope": [
+        "Local"
+      ]
     },
     {
       "slug": "azure-dr-restore-drill",
@@ -569,11 +585,11 @@
       "scope": [
         [
           "Full drill and 4 tests",
-          "Ran locally"
+          "Local"
         ],
         [
           "Blob point-in-time restore with scripts/azure-drill.sh",
-          "Not yet run on Azure"
+          "Needs Azure (not yet run)"
         ]
       ],
       "decisions": [
@@ -592,7 +608,10 @@
         "rpo",
         "dr drill"
       ],
-      "home_scope": "ran locally"
+      "home_built": "A backup-and-restore drill with checksum verification and measured RTO and RPO.",
+      "result_scope": [
+        "Local"
+      ]
     }
   ]
 }

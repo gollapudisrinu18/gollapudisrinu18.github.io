@@ -73,7 +73,7 @@
     var job = current;
     current = null;
     if (job) { job.cancelled = true; clearTimeout(job.timer); }
-    if (synth && (synth.speaking || synth.pending)) { try { synth.cancel(); } catch (e) { /* ignore */ } }
+    if (synth && (synth.speaking || synth.pending || synth.paused)) { try { synth.cancel(); synth.resume(); } catch (e) { /* ignore */ } }
     if (job && job.opts.onend) job.opts.onend({ interrupted: true });
   }
 
@@ -150,7 +150,7 @@
     // several seconds to start on Windows, and some voices never fire "start" at all, so speech
     // that the browser reports as playing counts as started.
     job.timer = setTimeout(function () {
-      if (settled || job.cancelled || job.started) return;
+      if (settled || job.cancelled || job.started || job.paused) return;
       if (synth.speaking && !synth.pending) { u.onstart(); return; }
       if (!activated()) return fail(job, "blocked");
       if (!job.retried) {
@@ -178,13 +178,29 @@
 
   function isSpeaking() { return !!current; }
 
+  // Pause and resume the current narration. The start watchdog is suspended while paused.
+  function pause() {
+    if (!current || !synth) return false;
+    current.paused = true;
+    clearTimeout(current.timer);
+    try { synth.pause(); } catch (e) { /* ignore */ }
+    return true;
+  }
+  function resume() {
+    if (!current || !synth) return false;
+    current.paused = false;
+    try { synth.resume(); } catch (e) { /* ignore */ }
+    return true;
+  }
+  function isPaused() { return !!(current && current.paused); }
+
   if (synth) {
     loadVoices();
     window.addEventListener("pagehide", function () { if (current || synth.speaking) { current = null; try { synth.cancel(); } catch (e) { /* ignore */ } } });
   }
 
   window.PortfolioSpeech = {
-    supported: !!synth, ready: ready, speak: speak, stop: stop,
-    isSpeaking: isSpeaking, hasVoice: hasVoice, activated: activated, _sentences: sentences
+    supported: !!synth, ready: ready, speak: speak, stop: stop, pause: pause, resume: resume,
+    isSpeaking: isSpeaking, isPaused: isPaused, hasVoice: hasVoice, activated: activated, _sentences: sentences
   };
 })();

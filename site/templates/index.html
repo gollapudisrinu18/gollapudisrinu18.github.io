@@ -13,28 +13,76 @@
         <li>{{ profile.location }}</li>
       </ul>
       <div class="cta">
-        <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
-        {% if resume %}<a class="btn primary" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
-        <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
+        <div class="cta-primary">
+          <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
+          {% if resume %}<a class="btn primary" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
+        </div>
+        <div class="cta-secondary" role="group" aria-label="Audio intro and guided tour">
+          <button class="btn" type="button" data-intro-play aria-pressed="false" aria-controls="intro-panel">▶ Play intro</button>
+          <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
+          <button class="btn ghost" type="button" data-intro-transcript aria-expanded="false" aria-controls="intro-panel">Intro transcript</button>
+        </div>
+      </div>
+      <div class="intro-panel" id="intro-panel" data-intro hidden>
+        <p class="intro-label">Intro transcript</p>
+        <p class="intro-text" data-intro-text>{{ welcome }}</p>
+        <div class="intro-controls">
+          <button type="button" class="btn small" data-intro-toggle>Play</button>
+          <button type="button" class="btn small" data-intro-stop disabled>Stop</button>
+          <span class="intro-status" role="status" aria-live="polite" data-intro-status></span>
+        </div>
       </div>
     </div>
-    <aside class="welcome" data-welcome aria-labelledby="welcome-h">
-      <h2 class="welcome-title" id="welcome-h">Portfolio guide</h2>
-      <p class="welcome-text" data-welcome-text>{{ welcome }}</p>
-      <div class="welcome-actions">
-        <button type="button" class="btn small" data-welcome-play>Play welcome</button>
-        <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
-      </div>
-      <p class="welcome-status" role="status" aria-live="polite" data-welcome-status></p>
-    </aside>
-  </div>
-  <div class="wrap">
-    <div class="outcomes" role="group" aria-labelledby="outcomes-h">
-      <p class="outcomes-label" id="outcomes-h">Professional experience · <span>{{ profile.impact_source }}</span></p>
+    <aside class="outcomes" aria-labelledby="outcomes-h">
+      <h2 class="outcomes-label" id="outcomes-h">Professional experience</h2>
+      <p class="outcomes-source">{{ profile.impact_source }}</p>
       <ul>
         {% for item in profile.impact %}<li><span class="sr-only">{{ item.text }}</span><strong aria-hidden="true">{{ item.figure }}</strong><span aria-hidden="true">{{ item.label }}</span></li>{% endfor %}
       </ul>
+      <p class="outcomes-note">Employer outcomes from the resume. Portfolio lab results are labelled separately below.</p>
+    </aside>
+  </div>
+</section>
+
+<section id="projects" aria-labelledby="proj-h">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="proj-h">Featured projects</h2>
+      <p>Portfolio labs built to show the work end to end, with synthetic apps and data. Result labels: <span class="scope-badge s-local">Local</span> ran on a workstation against the real code, <span class="scope-badge s-simulated">Simulated</span> modelled or simulated, <span class="scope-badge s-azure">Azure-validated</span> run on Azure (none of these labs yet).</p>
     </div>
+    <div class="featured">
+      {% for p in lead %}
+      <article class="project-feature" data-lead="{{ p.slug }}">
+        <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
+        <dl class="feature-facts">
+          <div><dt>Problem</dt><dd>{{ p.home_problem }}</dd></div>
+          <div><dt>What I built</dt><dd>{{ p.home_built }}</dd></div>
+          <div><dt>Verified result {% for sc in p.result_scope %}<span class="scope-badge s-{{ sc | lower }}">{{ sc }}</span>{% endfor %}</dt><dd>{{ p.home_result }}</dd></div>
+        </dl>
+        <div class="row-actions">
+          <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
+          <a class="btn small" href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
+          <a class="btn small" href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <h3 class="sub-h">More labs</h3>
+    <ul class="project-list">
+      {% for p in others %}
+      <li>
+        <div>
+          <h4><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h4>
+          <p>{% for sc in p.result_scope %}<span class="scope-badge s-{{ sc | lower }}">{{ sc }}</span> {% endfor %}{{ p.home_result }}</p>
+        </div>
+        <div class="row-links">
+          <a href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
+          <a href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
+          <a href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
   </div>
 </section>
 
@@ -79,44 +127,6 @@
       {% for g in content.skills %}<div><dt>{{ g.group }}</dt><dd>{{ g['items'] | join(', ') }}</dd></div>{% endfor %}
     </dl>
     <p class="muted">Education: {{ content.education }}.{% if resume %} <a href="{{ root }}resume.html">View the full resume</a>.{% endif %}</p>
-  </div>
-</section>
-
-<section id="projects" aria-labelledby="proj-h">
-  <div class="wrap">
-    <div class="section-head">
-      <h2 id="proj-h">Projects</h2>
-      <p>Six portfolio labs built to show the work end to end. They use synthetic apps and data; each case study states what ran locally, what is simulated and what still needs Azure.</p>
-    </div>
-    <div class="featured">
-      {% for p in lead %}
-      <article class="project-feature" data-lead="{{ p.slug }}">
-        <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
-        <p><span class="k">Problem</span> {{ p.home_problem }}</p>
-        <p><span class="k">Lab result · {{ p.home_scope }}</span> {{ p.home_result }}</p>
-        <p class="stack">{{ p.stack[:5] | join(' · ') }}</p>
-        <div class="row-actions">
-          <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
-          <a class="btn small" href="{{ root }}projects/{{ p.slug }}.html#walkthrough">{{ 'Recorded demo' if p.video else 'Interactive walkthrough' }}</a>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-    <ul class="project-list">
-      {% for p in others %}
-      <li>
-        <div>
-          <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
-          <p><span class="scope-tag">{{ p.home_scope }}</span> {{ p.home_result }}</p>
-        </div>
-        <div class="row-links">
-          <a href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
-          <a href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
-          <a href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
-        </div>
-      </li>
-      {% endfor %}
-    </ul>
   </div>
 </section>
 

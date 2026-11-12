@@ -1,24 +1,107 @@
-/* Welcome panel and the diagram-based Portfolio Tour (home page).
+/* Audio intro and the diagram-based Portfolio Tour (home page).
+ * - Audio plays only after the visitor clicks Play intro or Play narration. Nothing plays on load
+ *   or on a first click elsewhere.
+ * - The intro has a transcript and Play / Pause / Resume / Stop controls.
+ * - The tour shows captions synchronised with the selected diagram; narration is optional
+ *   (Play narration, then Pause / Resume), and each step change cancels the previous narration.
  * - Narration uses PortfolioSpeech (speech synthesis only). The microphone is never used.
- * - The welcome is attempted once per browser tab session: straight away if the browser
- *   allows audio, otherwise on the visitor's first click or key press. Muting or using the
- *   welcome/tour controls also counts, so it is never repeated automatically.
- * - The tour opens with captions only. Narration starts when the visitor presses Play narration;
- *   after that each step change cancels the previous narration and narrates the new step.
- * - Captions are always shown, so the tour works muted or without audio support.
- * - sessionStorage holds only two flags: welcome tried, and muted.
+ * - sessionStorage keeps one flag for this tab: tour narration muted.
  */
 (function () {
   "use strict";
-  var welcome = document.querySelector("[data-welcome]");
   var bar = document.querySelector("[data-tour]");
-  if (!welcome || !bar) return;
-  var S = window.PortfolioSpeech || { supported: false, speak: function (t, o) { if (o && o.onfail) o.onfail("unsupported"); }, stop: function () {}, activated: function () { return true; } };
+  var intro = document.querySelector("[data-intro]");
+  if (!bar || !intro) return;
+  var S = window.PortfolioSpeech || { supported: false, speak: function (t, o) { if (o && o.onfail) o.onfail("unsupported"); },
+    stop: function () {}, pause: function () { return false; }, resume: function () { return false; }, isPaused: function () { return false; } };
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var text = welcome.querySelector("[data-welcome-text]").textContent.trim();
-  var wStatus = welcome.querySelector("[data-welcome-status]");
-  var playBtn = welcome.querySelector("[data-welcome-play]");
-  var muteBtns = Array.prototype.slice.call(document.querySelectorAll("[data-mute]"));
+  var KEY_MUTED = "portfolio.welcome.muted";
+  function sget(k) { try { return window.sessionStorage.getItem(k); } catch (e) { return null; } }
+  function sset(k, v) { try { window.sessionStorage.setItem(k, v); } catch (e) { /* storage blocked */ } }
+
+  function friendly(reason) {
+    if (reason === "blocked") return "Your browser needs a click before it can play sound. Press Play again to listen.";
+    if (reason === "unsupported") return "This browser can't read text aloud. The transcript is shown instead.";
+    if (reason === "no-voice") return "No suitable voice is installed on this device. The transcript is shown instead.";
+    return "Audio couldn't start in this browser. The text is shown here, and you can try again.";
+  }
+
+  // Only one owner speaks at a time: "intro" or "tour".
+  var owner = null;
+
+  // ---------------- intro ----------------
+  var introText = intro.querySelector("[data-intro-text]").textContent.trim();
+  var introPlay = document.querySelector("[data-intro-play]");          // hero button
+  var introToggle = intro.querySelector("[data-intro-toggle]");         // play / pause / resume
+  var introStop = intro.querySelector("[data-intro-stop]");
+  var introStatus = intro.querySelector("[data-intro-status]");
+  var transcriptBtn = document.querySelector("[data-intro-transcript]");
+  var introState = "idle";   // idle | loading | playing | paused | failed
+
+  function renderIntro() {
+    var label = { idle: "Play", loading: "Pause", playing: "Pause", paused: "Resume", failed: "Try again" }[introState];
+    introToggle.textContent = label;
+    introToggle.setAttribute("aria-label", label + " intro audio");
+    introStop.disabled = introState === "idle" || introState === "failed";
+    introPlay.setAttribute("aria-pressed", String(introState === "playing" || introState === "loading"));
+    intro.classList.toggle("speaking", introState === "playing");
+  }
+  function showIntro(open) {
+    intro.hidden = !open;
+    transcriptBtn.setAttribute("aria-expanded", String(open));
+    transcriptBtn.textContent = open ? "Hide transcript" : "Intro transcript";
+  }
+  function playIntro() {
+    if (owner === "tour") stopTour();
+    showIntro(true);
+    if (!S.supported) { introState = "failed"; introStatus.textContent = friendly("unsupported"); renderIntro(); introToggle.disabled = true; return; }
+    owner = "intro";
+    introState = "loading";
+    introStatus.textContent = "Starting audio…";
+    renderIntro();
+    S.speak(introText, {
+      lang: "en",
+      onstart: function () { introState = "playing"; introStatus.textContent = "Playing the intro."; renderIntro(); },
+      onend: function (info) {
+        if (owner === "intro") owner = null;
+        introState = "idle";
+        introStatus.textContent = info && info.interrupted ? "Intro stopped." : "Intro finished.";
+        renderIntro();
+      },
+      onfail: function (reason) {
+        if (owner === "intro") owner = null;
+        introState = "failed";
+        introStatus.textContent = friendly(reason);
+        renderIntro();
+      }
+    });
+  }
+  function toggleIntro() {
+    if (introState === "playing" || introState === "loading") {
+      if (S.pause()) { introState = "paused"; introStatus.textContent = "Intro paused."; renderIntro(); }
+    } else if (introState === "paused") {
+      if (S.resume()) { introState = "playing"; introStatus.textContent = "Playing the intro."; renderIntro(); }
+    } else {
+      playIntro();
+    }
+  }
+  function stopIntro() {
+    if (owner === "intro") S.stop();
+    owner = null;
+    introState = "idle";
+    renderIntro();
+  }
+
+  introPlay.addEventListener("click", function () {
+    if (introState === "playing" || introState === "loading" || introState === "paused") { stopIntro(); introStatus.textContent = "Intro stopped."; return; }
+    playIntro();
+  });
+  introToggle.addEventListener("click", toggleIntro);
+  introStop.addEventListener("click", function () { stopIntro(); introStatus.textContent = "Intro stopped."; introToggle.focus(); });
+  transcriptBtn.addEventListener("click", function () { showIntro(intro.hidden); });
+
+  // ---------------- tour ----------------
   var stepEl = bar.querySelector("[data-tour-step]");
   var capEl = bar.querySelector("[data-tour-caption]");
   var noteEl = bar.querySelector("[data-tour-note]");
@@ -26,20 +109,17 @@
   var nextBtn = bar.querySelector("[data-tour-next]");
   var stopBtn = bar.querySelector("[data-tour-stop]");
   var playNarr = bar.querySelector("[data-tour-play]");
-  var narrating = false;
-  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  var KEY_TRIED = "portfolio.welcome.autoplayed";
-  var KEY_MUTED = "portfolio.welcome.muted";
-  function sget(k) { try { return window.sessionStorage.getItem(k); } catch (e) { return null; } }
-  function sset(k, v) { try { window.sessionStorage.setItem(k, v); } catch (e) { /* storage blocked */ } }
+  var muteBtn = bar.querySelector("[data-mute]");
   var muted = sget(KEY_MUTED) === "1";
+  var narrating = false;     // the visitor asked for narration
+  var narrState = "idle";    // idle | playing | paused | failed
+  var step = -1;
 
   var STEPS = [
     { key: "delivery", title: "Delivery",
       say: "Delivery. A change runs through Azure Pipelines, which tests it and builds one image in Azure Container Registry. " +
-           "That same image is promoted to Dev, QA and Production on AKS, with an approval gate before Production. " +
-           "Every deployment is smoke-tested, and a failed release rolls back to the previous version." },
+           "That same image is deployed to Dev and QA, then waits at an approval gate before Production. " +
+           "After every deployment a smoke test runs; if it fails, Helm rolls back to the previous revision and later stages never run." },
     { key: "infrastructure", title: "Infrastructure",
       say: "Infrastructure. Terraform builds a hub-and-spoke network. Each spoke is its own VNet with network security groups. " +
            "Storage has public access turned off and is reached through a private endpoint, and the private DNS zone is linked to every VNet." },
@@ -47,79 +127,22 @@
       say: "Reliability. The checkout service sends metrics and traces. A latency SLO with burn-rate alerts pages the on-call engineer. " +
            "Traces point to the slow dependency, a cache fallback mitigates it, and a blameless postmortem records what to fix." },
     { key: "projects", title: "Explore",
-      say: "That's the tour. These are portfolio labs with case studies and walkthroughs. " +
+      say: "That's the tour. These are portfolio labs with case studies, recorded demos and interactive walkthroughs. " +
            "Open a project, view the resume, or ask the assistant a question." }
   ];
-  var step = -1;
 
-  // ---------- helpers ----------
-  function friendly(reason) {
-    if (reason === "blocked") return "Your browser needs a click before it can play sound. Press the button again to listen.";
-    if (reason === "unsupported") return "This browser can't read text aloud, so the captions are shown instead.";
-    return "Audio couldn't start in this browser. The text is shown here, and you can try again.";
-  }
-  function renderMute() {
-    muteBtns.forEach(function (b) {
-      b.setAttribute("aria-pressed", String(muted));
-      b.textContent = muted ? "Unmute" : "Mute";
-      b.setAttribute("aria-label", muted ? "Sound is off. Turn sound on" : "Turn sound off");
-    });
-  }
-  function setMuted(on) {
-    muted = on;
-    sset(KEY_MUTED, on ? "1" : "0");
-    renderMute();
-    if (on) { S.stop(); welcome.classList.remove("speaking"); }
+  function renderNarr() {
+    var label = narrState === "playing" ? "Pause narration"
+      : narrState === "paused" ? "Resume narration"
+      : narrState === "failed" ? "Try audio again"
+      : (narrating ? "Replay narration" : "Play narration");
+    playNarr.textContent = label;
+    playNarr.setAttribute("aria-pressed", String(narrState === "playing"));
+    muteBtn.setAttribute("aria-pressed", String(muted));
+    muteBtn.textContent = muted ? "Unmute" : "Mute";
+    muteBtn.setAttribute("aria-label", muted ? "Narration is muted. Turn sound on" : "Mute narration");
   }
 
-  // ---------- welcome ----------
-  function playWelcome(auto) {
-    if (!S.supported) { wStatus.textContent = friendly("unsupported"); return; }
-    wStatus.textContent = "";
-    S.speak(text, {
-      lang: "en",
-      onstart: function () { sset(KEY_TRIED, "1"); welcome.classList.add("speaking"); wStatus.textContent = "Playing the welcome. Press Mute to stop."; },
-      onend: function () { welcome.classList.remove("speaking"); if (/Playing/.test(wStatus.textContent)) wStatus.textContent = ""; },
-      onfail: function (reason) {
-        welcome.classList.remove("speaking");
-        if (auto && reason === "blocked") { armFirstInteraction(); return; }  // wait for a click, say nothing
-        if (auto) { sset(KEY_TRIED, "1"); return; }
-        wStatus.textContent = friendly(reason);
-      }
-    });
-  }
-
-  function eligible(e) {
-    if (e.type === "keydown" && /^(Tab|Shift|Control|Alt|Meta|Escape|CapsLock|OS)$/.test(e.key)) return false;
-    var t = e.target;
-    if (!t || !t.closest) return true;
-    if (t.closest("[data-welcome], [data-tour], [data-tour-start], [data-assistant]")) return false;
-    if (t.closest("input, textarea, select, [contenteditable], video")) return false;
-    var a = t.closest("a[href]");
-    if (a && a.getAttribute("href").charAt(0) !== "#") return false;  // leaving the page
-    return true;
-  }
-  var armed = false;
-  function onFirst(e) {
-    if (muted || sget(KEY_TRIED) === "1" || step >= 0) { disarm(); return; }
-    if (!eligible(e)) return;
-    disarm();
-    sset(KEY_TRIED, "1");
-    playWelcome(false);
-  }
-  function armFirstInteraction() {
-    if (armed) return;
-    armed = true;
-    document.addEventListener("click", onFirst, true);
-    document.addEventListener("keydown", onFirst, true);
-  }
-  function disarm() {
-    armed = false;
-    document.removeEventListener("click", onFirst, true);
-    document.removeEventListener("keydown", onFirst, true);
-  }
-
-  // ---------- tour ----------
   function selectTab(key) {
     var tab = document.querySelector('[data-tab="' + key + '"]');
     if (tab && window.PortfolioTabs) window.PortfolioTabs.select(tab, false);
@@ -129,30 +152,39 @@
     var target = key === "projects" ? document.getElementById("projects") : document.getElementById("arch-" + key);
     if (!target) return;
     target.classList.add("tour-focus");
-    // Scroll the diagram itself to the top so as much of it as possible sits above the tour bar.
     target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   }
-  function renderPlay(state) {
-    playNarr.setAttribute("aria-pressed", String(narrating));
-    playNarr.textContent = state === "failed" ? "Try audio again" : (narrating ? "Replay narration" : "Play narration");
-  }
+
   function narrate() {
     var at = step;
     noteEl.textContent = "";
-    if (muted || !narrating) { S.stop(); renderPlay(); return; }
-    renderPlay();
+    if (owner === "tour") S.stop();
+    if (muted || !narrating) { narrState = "idle"; renderNarr(); return; }
+    if (owner === "intro") { stopIntro(); }
+    owner = "tour";
+    narrState = "playing";
     noteEl.textContent = "Starting narration…";
+    renderNarr();
     S.speak(STEPS[step].say, {
       lang: "en",
       onstart: function () { if (step === at) noteEl.textContent = "Narrating: " + STEPS[at].title + "."; },
-      onend: function (info) { if (step === at && /^(Narrating|Starting)/.test(noteEl.textContent)) noteEl.textContent = ""; },
+      onend: function () {
+        if (step !== at) return;
+        if (owner === "tour") owner = null;
+        narrState = "idle";
+        if (/^(Narrating|Starting)/.test(noteEl.textContent)) noteEl.textContent = "";
+        renderNarr();
+      },
       onfail: function (reason) {
         if (step !== at) return;
+        if (owner === "tour") owner = null;
+        narrState = reason === "unsupported" ? "idle" : "failed";
         noteEl.textContent = friendly(reason);
-        renderPlay(reason === "unsupported" ? "" : "failed");
+        renderNarr();
       }
     });
   }
+
   function show(n) {
     step = Math.max(0, Math.min(STEPS.length - 1, n));
     var s = STEPS[step];
@@ -165,74 +197,59 @@
     narrate();
   }
   function startTour() {
-    disarm();
-    sset(KEY_TRIED, "1");
-    S.stop();
-    welcome.classList.remove("speaking");
+    if (owner === "intro") stopIntro();
     narrating = false;
+    narrState = "idle";
     bar.hidden = false;
     document.body.classList.add("touring");
     show(0);
     nextBtn.focus({ preventScroll: true });
   }
-  function stopTour(message) {
-    S.stop();
+  function stopTour() {
+    if (owner === "tour") S.stop();
+    if (owner === "tour") owner = null;
     narrating = false;
+    narrState = "idle";
     step = -1;
     bar.hidden = true;
     document.body.classList.remove("touring");
     document.querySelectorAll(".tour-focus").forEach(function (n) { n.classList.remove("tour-focus"); });
-    if (message) wStatus.textContent = message;
   }
 
-  // ---------- wiring ----------
   document.querySelectorAll("[data-tour-start]").forEach(function (b) { b.addEventListener("click", startTour); });
   nextBtn.addEventListener("click", function () {
-    if (step === STEPS.length - 1) { stopTour("Tour finished. You can start it again at any time."); return; }
+    if (step === STEPS.length - 1) { stopTour(); document.querySelector("[data-tour-start]").focus({ preventScroll: true }); return; }
     show(step + 1);
   });
   backBtn.addEventListener("click", function () { show(step - 1); });
-  stopBtn.addEventListener("click", function () {
-    stopTour("Tour stopped.");
-    var start = document.querySelector("[data-tour-start]");
-    if (start) start.focus({ preventScroll: true });
-  });
+  stopBtn.addEventListener("click", function () { stopTour(); document.querySelector("[data-tour-start]").focus({ preventScroll: true }); });
   playNarr.addEventListener("click", function () {
-    if (muted) setMuted(false);
+    if (narrState === "playing") { if (S.pause()) { narrState = "paused"; noteEl.textContent = "Narration paused."; renderNarr(); } return; }
+    if (narrState === "paused") { if (S.resume()) { narrState = "playing"; noteEl.textContent = "Narrating: " + STEPS[step].title + "."; renderNarr(); } return; }
+    if (muted) { muted = false; sset(KEY_MUTED, "0"); }
     narrating = true;
     narrate();
   });
-  playBtn.addEventListener("click", function () {
-    disarm();
-    sset(KEY_TRIED, "1");
-    if (muted) setMuted(false);
-    playWelcome(false);
-  });
-  muteBtns.forEach(function (b) {
-    b.addEventListener("click", function () {
-      disarm();
-      sset(KEY_TRIED, "1");
-      setMuted(!muted);
-      if (step >= 0) { if (muted) narrating = false; narrate(); }
-      if (step < 0) wStatus.textContent = muted ? "Sound is off. Captions and text stay on screen." : "Sound is on.";
-    });
+  muteBtn.addEventListener("click", function () {
+    muted = !muted;
+    sset(KEY_MUTED, muted ? "1" : "0");
+    if (muted) { narrating = false; if (owner === "tour") { S.stop(); owner = null; } narrState = "idle"; noteEl.textContent = "Narration muted. Captions stay on screen."; }
+    else noteEl.textContent = "";
+    renderNarr();
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && step >= 0) stopTour("Tour stopped.");
+    if (e.key !== "Escape") return;
+    if (step >= 0) stopTour();
+    else if (owner === "intro") { stopIntro(); introStatus.textContent = "Intro stopped."; }
   });
 
-  renderMute();
   if (!S.supported) {
-    playNarr.disabled = true;
-    playNarr.setAttribute("aria-disabled", "true");
-    playBtn.disabled = true;
-    playBtn.setAttribute("aria-disabled", "true");
-    muteBtns.forEach(function (b) { b.hidden = true; });
-    wStatus.textContent = "This browser can't read text aloud. The tour still works with captions.";
-  } else if (!muted && sget(KEY_TRIED) !== "1") {
-    if (S.activated()) playWelcome(true);   // the browser already allows audio
-    else armFirstInteraction();
+    [introPlay, playNarr].forEach(function (b) { b.disabled = true; b.setAttribute("aria-disabled", "true"); });
+    muteBtn.hidden = true;
+    introPlay.title = "This browser can't read text aloud. Use the transcript.";
   }
+  renderIntro();
+  renderNarr();
 
   window.__portfolioTour = { start: startTour, stop: stopTour, step: function () { return step; }, steps: STEPS.length };
 })();
