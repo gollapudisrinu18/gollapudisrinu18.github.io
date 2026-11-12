@@ -126,8 +126,8 @@
     var target = key === "projects" ? document.getElementById("projects") : document.getElementById("arch-" + key);
     if (!target) return;
     target.classList.add("tour-focus");
-    var anchor = key === "projects" ? target : document.getElementById("architecture");
-    anchor.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    // Scroll the diagram itself to the top so as much of it as possible sits above the tour bar.
+    target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   }
   function narrate() {
     noteEl.textContent = "";
