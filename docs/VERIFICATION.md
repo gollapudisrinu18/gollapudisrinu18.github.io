@@ -70,7 +70,8 @@ Not verifiable here: real speaker output, Safari/Firefox autoplay behaviour, and
 | Delivery diagram | Rebuilt from `pipelines/azure-pipelines.yml`, `docs/approvals.md` (dev: none, qa: branch control, prod: approval + branch control) and `scripts/deploy_with_rollback.sh`: three stages each with helm upgrade and an explicit smoke test, approval gate inside Prod, pass/fail arrows, one rollback lane. Phone layout shows the same steps vertically. Delivery tab selected on load |
 | Audio | Nothing plays on load or on a first click elsewhere; intro plays only from Play intro, with transcript, Pause/Resume and Stop; tour narration Play/Pause/Resume, cancelled on step change; intro and tour never overlap; friendly fallbacks |
 | Paths | Full browser suite run with the site served under `/my-profile/` (as on GitHub Pages) and at the root: 39/39 both |
-| Tests | Node 23/23, browser 39/39 |
+| Tests | Node 23/23, browser 40/40 |
+| Live audio fix | Live Chrome run showed the engine finishing a sentence after Pause and the next sentence starting early; next sentence is now held until Resume (test added) |
 
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.

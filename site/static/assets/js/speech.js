@@ -132,7 +132,15 @@
       if (job.cancelled) return;
       if (!job.started) { job.started = true; if (job.opts.onstart) job.opts.onstart(); }
     };
-    u.onend = function () { if (settled) return; release(); if (!job.cancelled) { job.i++; next(job); } };
+    u.onend = function () {
+      if (settled) return;
+      release();
+      if (job.cancelled) return;
+      job.i++;
+      // Chrome can finish the current sentence after pause(); hold the next one until resume().
+      if (job.paused) { job.held = true; return; }
+      next(job);
+    };
     u.onerror = function (e) {
       if (settled) return;
       release();
@@ -168,7 +176,7 @@
       fail(job, "failed");
     }, 6000);
     try {
-      if (synth.paused) synth.resume();
+      if (synth.paused && !job.paused) synth.resume();
       synth.speak(u);
     } catch (err) {
       release();
@@ -188,8 +196,10 @@
   }
   function resume() {
     if (!current || !synth) return false;
-    current.paused = false;
+    var job = current;
+    job.paused = false;
     try { synth.resume(); } catch (e) { /* ignore */ }
+    if (job.held) { job.held = false; next(job); }
     return true;
   }
   function isPaused() { return !!(current && current.paused); }

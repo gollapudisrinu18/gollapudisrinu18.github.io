@@ -457,6 +457,21 @@ def test_intro_play_pause_resume_stop(browser):
     assert page.evaluate("window.__rec.length") == 0
 
 
+def test_pause_holds_the_next_sentence(browser):
+    """Chrome may finish the current sentence after pause(); the next one must wait for Resume."""
+    page = home(browser, HOLD_TTS)
+    page.click("[data-intro-play]")
+    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Welcome')")
+    page.click("[data-intro-toggle]")                       # Pause
+    page.evaluate("(() => { const u = window.speechSynthesis._u; window.speechSynthesis.speaking = false; u.onend(); })()")
+    page.wait_for_timeout(400)
+    assert page.evaluate("window.__spoken.length") == 1     # nothing new spoken while paused
+    assert page.evaluate("window.__resumed || 0") == 0
+    page.click("[data-intro-toggle]")                       # Resume
+    page.wait_for_function("window.__spoken.length === 2")
+    assert page.evaluate("window.__spoken[1].text").startswith("Explore")
+
+
 def test_tour_controls_and_captions(browser):
     page = home(browser, FAKE_SR, HOLD_TTS)
     page.click("[data-tour-start]")
