@@ -18,7 +18,25 @@ const cases = [
   ["Show me the supply chain demo", "demo-azure-devsecops-supply-chain", "lab"],
   ["Does he have any certifications?", "certifications", "meta"],
   ["Is this real client code?", "synthetic", "meta"],
+  ["What Azure DevOps work has Srinivasa done in production?", "azure-devops", "career"],
 ];
+
+test("production question separates work experience from the lab", () => {
+  const r = KB.answer(data, "What Azure DevOps work has Srinivasa done in production?", "en");
+  assert.match(r.text, /^Work experience:/);
+  assert.match(r.text, /10\+ applications/);
+  assert.ok(r.labNote, "has a lab section");
+  assert.match(r.labNote.text, /^Portfolio lab/);
+  assert.deepStrictEqual(r.labNote.links.map(l => l.href),
+    ["projects/aks-delivery-platform.html", "demos/aks-delivery-platform.html"]);
+});
+
+test("first three sample questions", () => {
+  assert.deepStrictEqual(data.samples.slice(0, 3), [
+    "What Azure DevOps work has Srinivasa done in production?",
+    "How does the AKS rollback work?",
+    "Show me the SRE incident demo"]);
+});
 for (const [q, id, kind] of cases) {
   test(`matches: ${q}`, () => {
     const r = KB.answer(data, q, "en");
@@ -56,8 +74,8 @@ test("Telugu mode falls back to English when no Telugu answer exists", () => {
 });
 
 test("every link in the knowledge base points to a built page or https URL", () => {
-  for (const e of data.entries) for (const l of e.links) {
-    if (/^https:\/\//.test(l.href)) continue;
+  for (const e of data.entries) for (const l of e.links.concat(e.lab_note ? e.lab_note.links : [])) {
+    if (/^(https:\/\/|mailto:)/.test(l.href)) continue;
     const file = path.join(__dirname, "../../_site", l.href.split("#")[0]);
     assert.ok(fs.existsSync(file), `${e.id}: ${l.href}`);
   }

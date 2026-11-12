@@ -1,11 +1,12 @@
 {
+  "welcome": "Hi, I’m Srinivasa’s portfolio assistant. Would you like to see his Azure DevOps and SRE experience, explore a project, or ask me a question?",
   "unavailable": "I don't have that information in this portfolio. It covers Srinivasa's career history from his resume and six hands-on Azure labs. Try asking about his Azure DevOps or SRE experience, or one of the projects.",
   "unavailable_te": "క్షమించండి, ఆ సమాచారం ఈ పోర్ట్‌ఫోలియోలో లేదు. ఇందులో శ్రీనివాస గారి రెజ్యూమ్‌లోని కెరీర్ వివరాలు మరియు ఆరు Azure ల్యాబ్‌లు మాత్రమే ఉన్నాయి.",
   "samples": [
-    "Tell me about Srinivasa",
-    "What is your Azure DevOps experience?",
+    "What Azure DevOps work has Srinivasa done in production?",
     "How does the AKS rollback work?",
     "Show me the SRE incident demo",
+    "Tell me about Srinivasa",
     "Which projects are in the portfolio?",
     "Is he available for remote work?"
   ],
@@ -16,6 +17,8 @@
     "projects": "ఈ పోర్ట్‌ఫోలియోలో ఆరు Azure ల్యాబ్‌లు ఉన్నాయి: AKS డెలివరీ ప్లాట్‌ఫామ్, Terraform తో hub-and-spoke నెట్‌వర్క్, observability మరియు SRE incident ల్యాబ్, DevSecOps సప్లై చైన్, Azure Functions event processing, మరియు disaster recovery డ్రిల్. ఇవన్నీ synthetic డేటాతో నిర్మించిన పోర్ట్‌ఫోలియో ల్యాబ్‌లు.",
     "availability": "ఆయన వెంటనే జాయిన్ అవ్వగలరు. పూర్తిగా రిమోట్ ఉద్యోగాల కోసం మాత్రమే చూస్తున్నారు.",
     "rollback": "ఇది పోర్ట్‌ఫోలియో ల్యాబ్ ఫలితం. ప్రతి deployment తర్వాత smoke test నడుస్తుంది. అది విఫలమైతే, స్క్రిప్ట్ ముందుగా నమోదు చేసిన Helm revision కి helm rollback చేసి, మళ్లీ smoke test తో పాత వెర్షన్ సరిగ్గా పనిచేస్తోందని ధృవీకరిస్తుంది. డెమోలో వెర్షన్ 1.1.0 విఫలమై, 1.0.0 కి తిరిగి వెళ్లింది.",
-    "incident-demo": "ఇది simulated incident. Inventory dependency నెమ్మదించడంతో checkout requests 300 ms కంటే ఎక్కువ సమయం తీసుకున్నాయి. Burn-rate alert 16 నిమిషాల్లో page చేసింది, traces లో inventory.lookup కారణమని తేలింది, cache fallback తో 27 నిమిషాల్లో సమస్య తగ్గింది."
+    "incident-demo": "ఇది simulated incident. Inventory dependency నెమ్మదించడంతో checkout requests 300 ms కంటే ఎక్కువ సమయం తీసుకున్నాయి. Burn-rate alert 16 నిమిషాల్లో page చేసింది, traces లో inventory.lookup కారణమని తేలింది, cache fallback తో 27 నిమిషాల్లో సమస్య తగ్గింది.",
+    "lab-aks": "పోర్ట్‌ఫోలియో ల్యాబ్ (synthetic): AKS Delivery Platform ల్యాబ్‌లో ఒకే image ని Dev → QA → Prod కి approval gate తో promote చేస్తారు. డెమోలో 1.1.0 smoke test లో విఫలమై, pipeline 1.0.0 ని తిరిగి తెస్తుంది.",
+    "lab-sre": "పోర్ట్‌ఫోలియో ల్యాబ్ (simulated incident): 14.4x burn-rate alert నుండి traces తో investigation, cache fallback mitigation మరియు blameless postmortem వరకు చూపిస్తుంది."
   }
 }

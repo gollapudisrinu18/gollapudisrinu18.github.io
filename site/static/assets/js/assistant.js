@@ -34,7 +34,7 @@
     te: { rec: "te-IN", label: "తెలుగు", placeholder: "తెలుగు లేదా English లో అడగండి" }
   };
   var KIND_LABEL = {
-    career: ["Career history · from resume", ""],
+    career: ["Work experience · from resume", ""],
     lab: ["Portfolio lab result", "teal"],
     incident: ["Simulated incident", "warn"],
     meta: ["About this portfolio", ""],
@@ -91,12 +91,26 @@
     if (voice) u.voice = voice;
     u.rate = 1;
     u.onstart = function () { setStatus("Speaking the answer… press Stop to end.", "speaking"); };
-    u.onend = function () { setStatus("Ready. Type or press the microphone to ask.", ""); };
+    u.onend = function () { setStatus("Ready. Type a question, or press Voice to speak.", ""); };
     u.onerror = function (e) {
       if (e.error !== "interrupted" && e.error !== "canceled") setStatus("Audio playback failed (" + e.error + ").", "error");
     };
     synth.speak(u);
     return true;
+  }
+
+  function linkRow(list) {
+    var links = el("div", "msg-links");
+    list.forEach(function (l) {
+      var a = el("a", "", l.label);
+      a.href = /^(https?:|mailto:)/.test(l.href) ? l.href : base + l.href;
+      links.appendChild(a);
+    });
+    return links;
+  }
+
+  function spokenText(res) {
+    return res.labNote ? res.text + " " + res.labNote.text : res.text;
   }
 
   function renderAnswer(res) {
@@ -111,14 +125,18 @@
     p.lang = res.lang;
     nodes.push(p);
     if (res.fallbackToEnglish) nodes.push(el("div", "note", "తెలుగు సమాధానం అందుబాటులో లేదు; English లో చూపిస్తున్నాం."));
-    if (res.links && res.links.length) {
-      var links = el("div", "msg-links");
-      res.links.forEach(function (l) {
-        var a = el("a", "", l.label);
-        a.href = /^https?:/.test(l.href) ? l.href : base + l.href;
-        links.appendChild(a);
-      });
-      nodes.push(links);
+    if (res.links && res.links.length) nodes.push(linkRow(res.links));
+    if (res.labNote) {
+      var lab = el("div", "lab-note");
+      var labKind = el("div", "kind");
+      labKind.appendChild(el("span", "badge " + KIND_LABEL.lab[1], KIND_LABEL.lab[0]));
+      lab.appendChild(labKind);
+      var lp = el("p", "", res.labNote.text);
+      lp.style.margin = "0";
+      lp.lang = res.labNote.lang;
+      lab.appendChild(lp);
+      if (res.labNote.links.length) lab.appendChild(linkRow(res.labNote.links));
+      nodes.push(lab);
     }
     if (!res.matched && res.suggestions && res.suggestions.length) {
       var s = el("div", "note", "Try: " + res.suggestions.slice(0, 3).join(" · "));
@@ -128,7 +146,7 @@
       var play = el("button", "btn small ghost", "▶ Listen");
       play.type = "button";
       play.setAttribute("aria-label", "Read this answer aloud");
-      play.addEventListener("click", function () { speak(res.text, res.lang); });
+      play.addEventListener("click", function () { speak(spokenText(res), res.lang); });
       var row = el("div", "msg-links");
       row.appendChild(play);
       nodes.push(row);
@@ -146,7 +164,7 @@
     }
     var res = window.PortfolioKB.answer(KB, question, lang());
     renderAnswer(res);
-    if (speakBox && speakBox.checked) speak(res.text, res.lang);
+    if (speakBox && speakBox.checked) speak(spokenText(res), res.lang);
     else setStatus("Answered. Press ▶ Listen to hear it, or ask another question.", "");
   }
 
@@ -185,7 +203,7 @@
       var msg = {
         "not-allowed": "Microphone permission was denied. Allow it in your browser's site settings, or type your question.",
         "service-not-allowed": "Voice input is blocked in this browser. Please type your question.",
-        "no-speech": "I didn't hear anything. Press the microphone and try again, or type.",
+        "no-speech": "I didn't hear anything. Press Voice and try again, or type.",
         "audio-capture": "No microphone was found. Please type your question.",
         "network": "The browser's speech service couldn't be reached. Please type your question.",
         "language-not-supported": LANGS[lang()].label + " voice input isn't supported in this browser. Please type your question."
@@ -206,7 +224,7 @@
     if (rec && listening) { try { rec.abort(); } catch (e) { /* ignore */ } }
     if (synth) synth.cancel();
     micBtn.setAttribute("aria-pressed", "false");
-    setStatus("Stopped. Type or press the microphone to ask.", "");
+    setStatus("Stopped. Type a question, or press Voice to speak.", "");
   }
 
   // ---------------- wiring ----------------
@@ -257,7 +275,7 @@
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
       KB = data;
-      if (!statusEl.classList.contains("error")) setStatus("Ready. Type a question or press the microphone.", "");
+      if (!statusEl.classList.contains("error")) setStatus(Recognition && !micBtn.disabled ? "Ready. Type a question, or press Voice to speak." : "Ready. Type your question below.", "");
     })
     .catch(function () { setStatus("Couldn't load the portfolio knowledge base.", "error"); });
 

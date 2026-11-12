@@ -3,5 +3,11 @@
   "repo": "my-profile",
   "branch": "main",
   "pages_url": "https://gollapudisrinu18.github.io/my-profile/",
-  "site_title": "Srinivasa Rao Gollapudi \u00b7 Azure DevOps & SRE Portfolio"
+  "site_title": "Srinivasa Rao Gollapudi · Azure DevOps & SRE Portfolio",
+  "contact": {
+    "resume_pdf": "",
+    "linkedin_url": "",
+    "email": ""
+  },
+  "_contact_help": "resume_pdf: path under site/static, e.g. assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf. linkedin_url: https://www.linkedin.com/in/... email: public address. Empty values are hidden on the site."
 }

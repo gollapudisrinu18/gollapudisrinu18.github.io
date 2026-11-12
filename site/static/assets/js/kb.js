@@ -78,7 +78,12 @@
       text: hasTe ? best.answer_te : best.answer,
       lang: hasTe ? "te" : "en",
       fallbackToEnglish: te && !best.answer_te,
-      links: best.links || []
+      links: best.links || [],
+      labNote: best.lab_note ? {
+        text: hasTe && best.lab_note.text_te ? best.lab_note.text_te : best.lab_note.text,
+        lang: hasTe && best.lab_note.text_te ? "te" : "en",
+        links: best.lab_note.links || []
+      } : null
     };
   }
 

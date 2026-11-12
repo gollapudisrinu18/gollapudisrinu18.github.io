@@ -1,0 +1,19 @@
+<article class="card project-card lead-card" data-lead="{{ p.slug }}">
+  <div class="lead-top"><span class="lead-num" aria-hidden="true">{{ n }}</span><span class="badge">Case study {{ n }} · Portfolio lab</span></div>
+  <h3 style="margin-top:.6rem"><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
+  <h4>What I built</h4>
+  <p>{{ p.lead.built }}</p>
+  <h4>What you can verify in the demo</h4>
+  <ol class="verify">{% for v in p.lead.verify %}<li>{{ v }}</li>{% endfor %}</ol>
+  <div class="lead-actions">
+    <a class="btn primary" href="{{ root }}projects/{{ p.slug }}.html">Case Study</a>
+    <a class="btn" href="{{ root }}demos/{{ p.slug }}.html">▶ Watch Demo</a>
+  </div>
+  <ul class="chips" aria-label="Technologies">{% for s in p.stack %}<li class="chip">{{ s }}</li>{% endfor %}</ul>
+  <div class="links">
+    <a href="{{ p.links.source }}">Source</a>
+    <a href="{{ root }}projects/{{ p.slug }}.html#architecture">Architecture</a>
+    {% if p.links.postmortem %}<a href="{{ p.links.postmortem }}">Postmortem</a>{% endif %}
+    <a href="{{ p.links.issues_doc }}">Issues</a>
+  </div>
+</article>

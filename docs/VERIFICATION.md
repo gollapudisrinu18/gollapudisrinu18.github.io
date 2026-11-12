@@ -33,5 +33,19 @@ Checked in the build workspace on 12 Nov 2026 (Python 3.13, Node 22, Chrome, Pla
 - Speaking into a real microphone and hearing real audio output. The sandbox has no microphone or speakers. The browser speech APIs were exercised with controlled stand-ins, plus one real-API permission-denied run.
 - Whether a given recruiter's browser has a Telugu voice installed. The site detects this and falls back to text.
 
+## Recruiter-first homepage update (12 Nov 2026)
+
+| Check | Result |
+|---|---|
+| Hero | Headline kept; two-sentence intro; impact tiles labelled as professional experience; Immediate joiner, Remote only, Bangalore visible |
+| Resume / LinkedIn / Email | Not configured: no approved public PDF or verified URLs in the repo, so the links are hidden and View Projects is the primary action. Set them in `site/config.json` → `contact`; invalid or missing values are dropped at build time (`tests/site/test_build_contact.py`) |
+| Lead case studies | AKS Delivery Platform first, SRE Incident Lab second; built/verify text checked against demo output and postmortem; all six case study and demo links present |
+| Voice welcome (Chrome, Playwright, speech stand-ins) | Visible on load; nothing spoken before interaction; spoken once on first eligible click; not repeated after visiting a project page and returning; Play welcome replays; Stop and Mute end playback; muted stays muted on reload; blocked audio and no speech support keep the greeting visible with a message; never creates a SpeechRecognition |
+| Ask My Portfolio | Typing first (Ask is primary, Voice optional); three requested sample questions first; production answer separates work experience from the portfolio lab and links the case study and demo |
+| Layout | 1366 px and 390 px, light and dark; welcome card does not overlap hero buttons on mobile; no horizontal scroll |
+| Tests | Node 20/20, contact 3/3, browser 30/30 |
+
+Not verifiable here: real speaker output, and real browser autoplay policy on Safari and Firefox (stand-ins exercised the blocked path).
+
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.

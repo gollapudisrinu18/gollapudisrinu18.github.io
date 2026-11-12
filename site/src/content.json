@@ -5,6 +5,25 @@
     "availability": "Immediate joiner · Open to fully remote roles",
     "location": "Bangalore, India",
     "summary": "Senior DevOps Engineer and Site Reliability Engineer with 11+ years in IT. I moved from Linux and Windows Server administration into Microsoft Azure infrastructure, Azure DevOps CI/CD, AKS platform operations and SRE for enterprise clients in the UK and US. My recent work covers Azure Pipelines, AKS, ACR, Terraform, Entra ID, Key Vault and Azure Policy, L3 on-call escalation, SLOs and error budgets, and blameless postmortems.",
+    "intro": "Senior Azure DevOps Engineer and Site Reliability Engineer with 11+ years in IT, building Azure DevOps CI/CD pipelines that ship to AKS on infrastructure defined in Terraform. On the SRE side I set SLOs and error budgets, alert on burn rate instead of noise, take L3 on-call and write blameless postmortems.",
+    "impact": [
+      {
+        "figure": "10+",
+        "label": "applications deployed to AKS",
+        "text": "10+ applications deployed to AKS"
+      },
+      {
+        "figure": "Days → hours",
+        "label": "release lead time",
+        "text": "Release lead time reduced from days to hours"
+      },
+      {
+        "figure": "~45%",
+        "label": "fewer false-positive alerts",
+        "text": "~45% fewer false-positive alerts"
+      }
+    ],
+    "impact_source": "Professional experience at MITIE (Teknip Technology)",
     "about": [
       "I build delivery platforms that teams can trust: one pipeline that tests, scans, promotes and rolls back on its own, running on infrastructure defined in code.",
       "On the reliability side I define SLOs with application teams, alert on error-budget burn instead of noise, and write postmortems that lead to fixes.",
@@ -12,13 +31,100 @@
     ]
   },
   "skills": [
-    {"group": "Azure DevOps & CI/CD", "items": ["Azure Pipelines (multi-stage YAML)", "Reusable templates", "Environment approvals", "Azure Repos", "Git", "GitHub Actions", "Jenkins", "Argo CD"]},
-    {"group": "Microsoft Azure", "items": ["AKS", "ACR", "VNet & hub-spoke", "NSG", "Private Endpoints", "Application Gateway (WAF)", "Front Door", "App Service", "Azure Functions", "Entra ID", "Key Vault", "Azure Policy", "Azure RBAC"]},
-    {"group": "Infrastructure as Code", "items": ["Terraform (modules, remote state)", "Terragrunt", "ARM templates", "Bicep", "Ansible"]},
-    {"group": "Containers", "items": ["Kubernetes", "Docker", "Helm", "Kustomize", "NGINX Ingress", "cert-manager", "Istio", "HPA"]},
-    {"group": "SRE & Observability", "items": ["SLI / SLO / error budgets", "Burn-rate alerting", "On-call & incident response", "RCA & postmortems", "Disaster recovery (RTO/RPO)", "Azure Monitor", "Log Analytics", "Prometheus", "Grafana", "OpenTelemetry", "PagerDuty"]},
-    {"group": "DevSecOps", "items": ["Trivy", "SonarQube", "Checkmarx", "OPA/Gatekeeper", "SBOM", "Sigstore/Cosign", "GitHub Advanced Security", "Secrets Store CSI driver"]},
-    {"group": "Scripting & OS", "items": ["Bash", "PowerShell", "Python", "YAML", "Linux", "Windows Server"]}
+    {
+      "group": "Azure DevOps & CI/CD",
+      "items": [
+        "Azure Pipelines (multi-stage YAML)",
+        "Reusable templates",
+        "Environment approvals",
+        "Azure Repos",
+        "Git",
+        "GitHub Actions",
+        "Jenkins",
+        "Argo CD"
+      ]
+    },
+    {
+      "group": "Microsoft Azure",
+      "items": [
+        "AKS",
+        "ACR",
+        "VNet & hub-spoke",
+        "NSG",
+        "Private Endpoints",
+        "Application Gateway (WAF)",
+        "Front Door",
+        "App Service",
+        "Azure Functions",
+        "Entra ID",
+        "Key Vault",
+        "Azure Policy",
+        "Azure RBAC"
+      ]
+    },
+    {
+      "group": "Infrastructure as Code",
+      "items": [
+        "Terraform (modules, remote state)",
+        "Terragrunt",
+        "ARM templates",
+        "Bicep",
+        "Ansible"
+      ]
+    },
+    {
+      "group": "Containers",
+      "items": [
+        "Kubernetes",
+        "Docker",
+        "Helm",
+        "Kustomize",
+        "NGINX Ingress",
+        "cert-manager",
+        "Istio",
+        "HPA"
+      ]
+    },
+    {
+      "group": "SRE & Observability",
+      "items": [
+        "SLI / SLO / error budgets",
+        "Burn-rate alerting",
+        "On-call & incident response",
+        "RCA & postmortems",
+        "Disaster recovery (RTO/RPO)",
+        "Azure Monitor",
+        "Log Analytics",
+        "Prometheus",
+        "Grafana",
+        "OpenTelemetry",
+        "PagerDuty"
+      ]
+    },
+    {
+      "group": "DevSecOps",
+      "items": [
+        "Trivy",
+        "SonarQube",
+        "Checkmarx",
+        "OPA/Gatekeeper",
+        "SBOM",
+        "Sigstore/Cosign",
+        "GitHub Advanced Security",
+        "Secrets Store CSI driver"
+      ]
+    },
+    {
+      "group": "Scripting & OS",
+      "items": [
+        "Bash",
+        "PowerShell",
+        "Python",
+        "YAML",
+        "Linux",
+        "Windows Server"
+      ]
+    }
   ],
   "experience": [
     {
@@ -74,7 +180,14 @@
       "tier": "flagship",
       "title": "AKS Delivery Platform with Azure DevOps",
       "short": "Multi-stage Azure Pipelines that test, build in ACR and promote one image through Dev, QA and Production on AKS, with approvals and automatic rollback.",
-      "stack": ["Azure Pipelines", "ACR", "AKS", "Helm", "Python", "pytest"],
+      "stack": [
+        "Azure Pipelines",
+        "ACR",
+        "AKS",
+        "Helm",
+        "Python",
+        "pytest"
+      ],
       "problem": "Releases were copied between environments by hand, Production had no approval gate, and a broken release stayed live until someone noticed. Liveness probes kept passing while the API returned errors.",
       "built": [
         "Flask Orders API with health, readiness and version endpoints, plus a switch that simulates a bad release.",
@@ -92,6 +205,58 @@
           "Revision 2 deploys 1.1.0 with a simulated defect. Probes stay green but the orders API returns HTTP 500, so the smoke test fails and the release is rolled back to revision 1.",
           "The release history shows the rollback as revision 3, and /version confirms 1.0.0 is serving again."
         ]
+      },
+      "lead": {
+        "built": "A multi-stage Azure Pipelines release for a Flask orders API: one image built in ACR, promoted Dev → QA → Prod with Helm on AKS, a Production approval gate, and a deploy script that smoke-tests every release and runs helm rollback when it fails.",
+        "verify": [
+          "Revision 1 deploys orders-api 1.0.0 and all four smoke checks pass.",
+          "Revision 2 deploys 1.1.0. Health probes stay green, but the orders API returns HTTP 500, so the smoke test fails.",
+          "The script rolls back to revision 1. Helm records it as revision 3, and /version confirms 1.0.0 is serving again."
+        ]
+      }
+    },
+    {
+      "slug": "aks-observability-sre-lab",
+      "dir": "03-aks-observability-sre-lab",
+      "tier": "flagship",
+      "title": "AKS Observability and SRE Incident Lab",
+      "short": "OpenTelemetry and Prometheus instrumentation, SLOs with error budgets and burn-rate alerts, and a full latency incident from detection to postmortem.",
+      "stack": [
+        "OpenTelemetry",
+        "Prometheus",
+        "Grafana",
+        "PromQL",
+        "Azure Monitor",
+        "Log Analytics"
+      ],
+      "problem": "The checkout service had dashboards but no reliability target. Alerts fired on noise, and nobody was paged when checkouts became slow but still returned HTTP 200.",
+      "built": [
+        "checkout-api with OpenTelemetry spans per dependency and a Prometheus latency histogram.",
+        "Recording rules for bad-request ratios and multi-window burn-rate alerts (14.4x page, 6x ticket) with a promtool unit test.",
+        "Grafana dashboard, OTel Collector, Docker Compose stack and AKS manifests with a PodMonitor for Azure managed Prometheus.",
+        "A live incident demo against the real service and a 3-hour minute-by-minute simulation.",
+        "Runbook and a blameless postmortem built from the simulation output."
+      ],
+      "result": "Simulated incident: the latency SLO page fired 16 minutes after the fault, span timings pointed to inventory.lookup, the cache fallback mitigated it at T+27 min, and 3.6% of the monthly error budget was used. In the live demo the burn rate went from 0x to over 14.4x and back to 0x.",
+      "run": "python sim/live_incident_demo.py",
+      "demo": {
+        "intro": "Checkout gets slow but keeps returning 200. The SLO alert catches it, traces point to the cause, and a fallback restores service.",
+        "captions": [
+          "Baseline: steady traffic, no requests slower than 300 ms, burn rate 0x.",
+          "Fault injected in the inventory dependency. More than half of the requests miss the 300 ms objective and the burn rate passes the 14.4x paging threshold.",
+          "Slow-request span timings show inventory.lookup taking about 800 ms while payment and persistence stay normal.",
+          "The inventory cache fallback is enabled and the burn rate drops back to 0x.",
+          "Detected, diagnosed, mitigated and recovered."
+        ]
+      },
+      "lead": {
+        "built": "An instrumented checkout service with OpenTelemetry spans and a Prometheus latency histogram, a 300 ms latency SLO with multi-window burn-rate alerts (14.4x page, 6x ticket), a Grafana dashboard, a runbook and a blameless postmortem.",
+        "verify": [
+          "Alert: a slow inventory dependency pushes the burn rate past the 14.4x paging threshold while checkouts still return HTTP 200.",
+          "Investigation: slow-request span timings point to inventory.lookup at about 800 ms; payment and persistence stay normal.",
+          "Mitigation: the inventory cache fallback brings the burn rate back to 0x.",
+          "Postmortem: in the 3-hour simulation the page fired at 16 minutes, mitigation landed at 27 minutes, 3.6% of the monthly error budget was used, and four action items were recorded."
+        ]
       }
     },
     {
@@ -100,7 +265,14 @@
       "tier": "flagship",
       "title": "Azure Hub-and-Spoke Infrastructure with Terraform",
       "short": "Reusable Terraform modules for hub and spoke VNets, peering, NSGs, private endpoints and private DNS, with remote state and a reproducible DNS incident.",
-      "stack": ["Terraform", "azurerm 4.x", "VNet", "NSG", "Private Endpoint", "Private DNS"],
+      "stack": [
+        "Terraform",
+        "azurerm 4.x",
+        "VNet",
+        "NSG",
+        "Private Endpoint",
+        "Private DNS"
+      ],
       "problem": "Teams built VNets by hand. Private endpoints were added without matching private DNS links, so workloads silently resolved the public endpoint and failed with HTTP 403.",
       "built": [
         "Six modules: hub, spoke, two-way peering, NSG with rule map, private DNS zone with VNet links, private endpoint with DNS zone group.",
@@ -122,40 +294,19 @@
       }
     },
     {
-      "slug": "aks-observability-sre-lab",
-      "dir": "03-aks-observability-sre-lab",
-      "tier": "flagship",
-      "title": "AKS Observability and SRE Incident Lab",
-      "short": "OpenTelemetry and Prometheus instrumentation, SLOs with error budgets and burn-rate alerts, and a full latency incident from detection to postmortem.",
-      "stack": ["OpenTelemetry", "Prometheus", "Grafana", "PromQL", "Azure Monitor", "Log Analytics"],
-      "problem": "The checkout service had dashboards but no reliability target. Alerts fired on noise, and nobody was paged when checkouts became slow but still returned HTTP 200.",
-      "built": [
-        "checkout-api with OpenTelemetry spans per dependency and a Prometheus latency histogram.",
-        "Recording rules for bad-request ratios and multi-window burn-rate alerts (14.4x page, 6x ticket) with a promtool unit test.",
-        "Grafana dashboard, OTel Collector, Docker Compose stack and AKS manifests with a PodMonitor for Azure managed Prometheus.",
-        "A live incident demo against the real service and a 3-hour minute-by-minute simulation.",
-        "Runbook and a blameless postmortem built from the simulation output."
-      ],
-      "result": "Simulated incident: the latency SLO page fired 16 minutes after the fault, span timings pointed to inventory.lookup, the cache fallback mitigated it at T+27 min, and 3.6% of the monthly error budget was used. In the live demo the burn rate went from 0x to over 14.4x and back to 0x.",
-      "run": "python sim/live_incident_demo.py",
-      "demo": {
-        "intro": "Checkout gets slow but keeps returning 200. The SLO alert catches it, traces point to the cause, and a fallback restores service.",
-        "captions": [
-          "Baseline: steady traffic, no requests slower than 300 ms, burn rate 0x.",
-          "Fault injected in the inventory dependency. More than half of the requests miss the 300 ms objective and the burn rate passes the 14.4x paging threshold.",
-          "Slow-request span timings show inventory.lookup taking about 800 ms while payment and persistence stay normal.",
-          "The inventory cache fallback is enabled and the burn rate drops back to 0x.",
-          "Detected, diagnosed, mitigated and recovered."
-        ]
-      }
-    },
-    {
       "slug": "azure-devsecops-supply-chain",
       "dir": "04-azure-devsecops-supply-chain",
       "tier": "flagship",
       "title": "Azure DevSecOps Software Supply Chain",
       "short": "Trivy scanning, SBOM generation and Cosign signing with an Azure Key Vault key, enforced at admission on AKS, with Workload ID for secrets.",
-      "stack": ["Azure Pipelines", "Trivy", "Syft SBOM", "Cosign + Key Vault", "Kyverno", "Entra Workload ID"],
+      "stack": [
+        "Azure Pipelines",
+        "Trivy",
+        "Syft SBOM",
+        "Cosign + Key Vault",
+        "Kyverno",
+        "Entra Workload ID"
+      ],
       "problem": "Any image that could be pulled could run on AKS. Nobody knew what was inside running images, and workloads used stored credentials to reach secrets.",
       "built": [
         "Pipeline stages: Trivy fs scan, build and push by digest, Trivy image scan, Syft SPDX SBOM, cosign sign and attest with azurekms://, cosign verify, deploy.",
@@ -181,7 +332,12 @@
       "tier": "supporting",
       "title": "Azure Functions Event-Driven Processing",
       "short": "Queue-triggered function with idempotency, retries, poison-message handling and structured logs.",
-      "stack": ["Azure Functions (Python)", "Storage Queues", "Table Storage", "Application Insights"],
+      "stack": [
+        "Azure Functions (Python)",
+        "Storage Queues",
+        "Table Storage",
+        "Application Insights"
+      ],
       "problem": "Queue redelivery charged customers twice, and malformed events kept retrying until they were dropped.",
       "built": [
         "Idempotency key claimed before the side effect and completed after it; atomic on Table Storage.",
@@ -207,7 +363,13 @@
       "tier": "supporting",
       "title": "Azure Disaster Recovery and Restore Drill",
       "short": "Repeatable backup and restore drill with checksum verification and measured RTO and RPO.",
-      "stack": ["Blob Storage PITR", "Soft delete", "Versioning", "Azure CLI", "Python"],
+      "stack": [
+        "Blob Storage PITR",
+        "Soft delete",
+        "Versioning",
+        "Azure CLI",
+        "Python"
+      ],
       "problem": "Backups existed but had never been restored, RTO and RPO were never measured, and there was no proof a restore was complete.",
       "built": [
         "Synthetic dataset, read-only snapshots with SHA-256 manifests, restore and verification.",

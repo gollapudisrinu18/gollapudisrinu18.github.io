@@ -1,22 +1,55 @@
 {% extends "base.html" %}
 {% block main %}
+{% set contact = cfg.contact %}
 <section class="hero">
-  <div class="wrap">
-    <p class="eyebrow">Azure DevOps · Site Reliability Engineering</p>
-    <h1>{{ profile.name }}</h1>
-    <p class="headline">{{ profile.headline }}</p>
-    <p class="lead">{{ profile.summary }}</p>
-    <ul class="facts">
-      <li>11+ years in IT</li>
-      <li>Immediate joiner</li>
-      <li>Remote only</li>
-      <li>{{ profile.location }}</li>
-    </ul>
-    <div class="cta">
-      <a class="btn primary" href="#projects">View the six projects</a>
-      <a class="btn" href="#ask">Ask My Portfolio</a>
-      <a class="btn ghost" href="{{ cfg.repo_url }}">GitHub repository</a>
+  <div class="wrap hero-grid">
+    <div class="hero-main">
+      <p class="eyebrow">Azure DevOps · Site Reliability Engineering</p>
+      <h1>{{ profile.name }}</h1>
+      <p class="headline">{{ profile.headline }}</p>
+      <p class="lead">{{ profile.intro }}</p>
+      <div class="impact" role="group" aria-labelledby="impact-h">
+        <p class="impact-label" id="impact-h">Impact · professional experience</p>
+        <ul class="impact-tiles">
+          {% for item in profile.impact %}<li class="impact-tile"><span class="sr-only">{{ item.text }}</span><span aria-hidden="true"><strong>{{ item.figure }}</strong><span>{{ item.label }}</span></span></li>{% endfor %}
+        </ul>
+      </div>
+      <ul class="facts">
+        <li>11+ years in IT</li>
+        <li>Immediate joiner</li>
+        <li>Remote only</li>
+        <li>{{ profile.location }}</li>
+      </ul>
+      <div class="cta">
+        {% if contact.resume_pdf %}
+        <a class="btn primary" href="{{ root }}{{ contact.resume_pdf }}" download data-cta="resume">⬇ Download Resume</a>
+        <a class="btn" href="#projects" data-cta="projects">View Projects</a>
+        {% else %}
+        <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
+        {% endif %}
+        <a class="btn ghost" href="{{ cfg.repo_url }}">GitHub repository</a>
+      </div>
+      {% if contact.linkedin_url or contact.email %}
+      <ul class="contact-links" aria-label="Contact">
+        {% if contact.linkedin_url %}<li><a href="{{ contact.linkedin_url }}" rel="me noopener" data-contact="linkedin">LinkedIn profile</a></li>{% endif %}
+        {% if contact.email %}<li><a href="mailto:{{ contact.email }}" data-contact="email">Email: {{ contact.email }}</a></li>{% endif %}
+      </ul>
+      {% endif %}
     </div>
+    <aside class="card welcome" data-welcome aria-labelledby="welcome-h">
+      <div class="welcome-head">
+        <span class="avatar" aria-hidden="true">SG<span class="wave"><i></i><i></i><i></i><i></i></span></span>
+        <p class="eyebrow" id="welcome-h">Portfolio assistant</p>
+      </div>
+      <p class="welcome-text" data-welcome-text>{{ welcome }}</p>
+      <div class="welcome-actions">
+        <button type="button" class="btn small primary" data-welcome-play>▶ Play welcome</button>
+        <button type="button" class="btn small" data-welcome-stop hidden>■ Stop</button>
+        <a class="btn small" href="#ask" data-welcome-ask>Ask a question</a>
+        <button type="button" class="btn small ghost" data-welcome-mute aria-pressed="false">🔊 Sound on</button>
+      </div>
+      <p class="welcome-status" role="status" aria-live="polite" data-welcome-status></p>
+    </aside>
   </div>
 </section>
 
@@ -65,9 +98,13 @@
 <section id="projects" aria-labelledby="proj-h">
   <div class="wrap">
     <p class="eyebrow">Projects</p>
-    <h2 id="proj-h">Four featured case studies</h2>
-    <p class="lead">Each project is a self-contained lab with source code, tests, architecture diagrams, a recorded demo and an issue backlog. They use synthetic apps and data and can be run by anyone.</p>
-    <div class="grid two" style="margin-top:1.5rem">
+    <h2 id="proj-h">Start with these two case studies</h2>
+    <p class="lead">Each project is a self-contained portfolio lab with source code, tests, architecture diagrams, a recorded demo and an issue backlog. They use synthetic apps and data, so the results below are lab results that anyone can re-run.</p>
+    <div class="grid two lead-grid" style="margin-top:1.5rem">
+      {% for p in lead %}{% set n = loop.index %}{% include "_lead_card.html" %}{% endfor %}
+    </div>
+    <h2 style="margin-top:3rem" id="flagship-h">More flagship labs</h2>
+    <div class="grid two" style="margin-top:1rem">
       {% for p in flagship %}{% include "_project_card.html" %}{% endfor %}
     </div>
     <h2 style="margin-top:3rem" id="supporting-h">Supporting projects</h2>
@@ -81,8 +118,8 @@
   <div class="wrap assistant" data-assistant>
     <div>
       <p class="eyebrow">Ask My Portfolio</p>
-      <h2 id="ask-h">Ask a question by voice or text</h2>
-      <p class="lead">Answers come from my resume and the six case studies, and say which is which. Voice works in browsers that support speech recognition; typing works everywhere.</p>
+      <h2 id="ask-h">Type a question about my work</h2>
+      <p class="lead">Answers come from my resume and the six case studies, and each one is labelled as work experience or portfolio lab result. Typing works everywhere; voice input is optional and only starts when you press Voice.</p>
     </div>
     <div class="samples" aria-label="Sample questions">
       {% for s in samples %}<button type="button" class="btn small" data-sample="{{ s }}">{{ s }}</button>{% endfor %}
@@ -102,17 +139,20 @@
       <div class="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="status-text">Loading…</span></div>
       <form class="ask-form" autocomplete="off">
         <label class="sr-only" for="ask-input">Your question</label>
-        <input id="ask-input" type="text" lang="en" placeholder="Ask about experience, projects or demos" maxlength="300">
-        <button class="btn mic" type="button" aria-pressed="false" aria-label="Start voice input">🎤 Speak</button>
-        <button class="btn stop" type="button" disabled>■ Stop</button>
+        <input id="ask-input" type="text" lang="en" placeholder="Type a question, e.g. What Azure DevOps work has he done?" maxlength="300">
         <button class="btn primary" type="submit">Ask</button>
+        <span class="voice-controls">
+          <button class="btn ghost mic" type="button" aria-pressed="false" aria-label="Start voice input (optional)">🎤 Voice</button>
+          <button class="btn ghost stop" type="button" disabled>■ Stop</button>
+        </span>
       </form>
     </div>
-    <p class="privacy">Privacy: questions and answers stay in this page and are not saved. If you use the microphone, your browser's speech service (for example Google in Chrome) processes the audio. The microphone starts only when you press Speak.</p>
+    <p class="privacy">Privacy: questions and answers stay in this page and are not saved. If you use the microphone, your browser's speech service (for example Google in Chrome) processes the audio. The microphone starts only when you press Voice; the welcome greeting never uses it. This page remembers only whether the welcome has played or been muted, for this browser tab.</p>
   </div>
 </section>
 {% endblock %}
 {% block scripts %}
 <script src="{{ root }}assets/js/kb.js" defer></script>
 <script src="{{ root }}assets/js/assistant.js" defer></script>
+<script src="{{ root }}assets/js/welcome.js" defer></script>
 {% endblock %}

@@ -107,6 +107,8 @@ def links_for(cfg, project):
         "source": tree,
         "architecture": f"{blob}/docs/architecture.md",
         "issues_doc": f"{blob}/docs/issues.md",
+        "postmortem": f"{blob}/docs/postmortem.md" if os.path.exists(
+            os.path.join(ROOT, "projects", project["dir"], "docs", "postmortem.md")) else None,
         "issues": f"{gh}/issues?q=" + query.replace(" ", "+").replace('"', "%22"),
         "readme": f"{blob}/README.md",
         "demo_page": f"demos/{project['slug']}.html",
@@ -114,7 +116,55 @@ def links_for(cfg, project):
     }
 
 
-def build_kb(content, extra, projects):
+def contact_entry(contact):
+    links = []
+    if contact.get("resume_pdf"):
+        links.append({"label": "Download resume (PDF)", "href": contact["resume_pdf"]})
+    if contact.get("linkedin_url"):
+        links.append({"label": "LinkedIn", "href": contact["linkedin_url"]})
+    if contact.get("email"):
+        links.append({"label": "Email", "href": "mailto:" + contact["email"]})
+    if links:
+        answer = "You can reach him through the links below. He is an immediate joiner and is looking for fully remote roles."
+    else:
+        answer = ("Contact details are kept off this public site. Please use the contact information on his resume, "
+                  "or open an issue on the GitHub repository.")
+    links.append({"label": "GitHub repository", "href": "{repo_url}"})
+    return {"id": "contact", "kind": "meta", "title": "How to contact",
+            "keywords": ["contact", "email", "phone", "reach", "linkedin", "call him", "resume", "cv"],
+            "answer": answer, "links": links}
+
+
+def check_contact(cfg):
+    """Return only the contact links that are real; warn about the rest so nothing broken ships."""
+    c = dict(cfg.get("contact") or {})
+    out = {}
+    pdf = (c.get("resume_pdf") or "").strip().lstrip("/")
+    if pdf:
+        if pdf.lower().endswith(".pdf") and os.path.isfile(os.path.join(STATIC, pdf)):
+            out["resume_pdf"] = pdf
+        else:
+            print(f"WARNING: resume_pdf '{pdf}' is not a PDF under site/static; the resume button is hidden")
+    li = (c.get("linkedin_url") or "").strip()
+    if li:
+        if re.match(r"^https://([a-z]{2,3}\.)?linkedin\.com/in/[A-Za-z0-9_-]+/?$", li):
+            out["linkedin_url"] = li
+        else:
+            print(f"WARNING: linkedin_url '{li}' is not a linkedin.com/in/ profile URL; the LinkedIn link is hidden")
+    em = (c.get("email") or "").strip()
+    if em:
+        if re.match(r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$", em, re.I):
+            out["email"] = em
+        else:
+            print(f"WARNING: email '{em}' is not valid; the Email link is hidden")
+    missing = [k for k in ("resume_pdf", "linkedin_url", "email") if k not in out]
+    if missing:
+        print("Contact links not configured (hidden on the site): " + ", ".join(missing))
+    return out
+
+
+def build_kb(content, extra, projects, contact=None):
+    contact = contact or {}
     p = content["profile"]
     te = extra["te"]
     entries = [
@@ -124,25 +174,36 @@ def build_kb(content, extra, projects):
          "answer": p["summary"], "answer_te": te["about"],
          "links": [{"label": "Experience", "href": "index.html#experience"}, {"label": "Projects", "href": "index.html#projects"}]},
         {"id": "azure-devops", "kind": "career", "title": "Azure DevOps experience",
-         "keywords": ["azure devops", "pipelines", "ci/cd", "cicd", "yaml", "release", "devops experience", "build and release"],
+         "keywords": ["azure devops", "pipelines", "ci/cd", "cicd", "yaml", "release", "devops experience", "build and release",
+                      "in production", "production work", "devops work"],
          "keywords_te": ["డెవాప్స్", "డెవ్‌ఆప్స్", "పైప్‌లైన్", "అనుభవం"],
-         "answer": ("At MITIE (Teknip Technology) he created multi-stage Azure DevOps YAML pipelines with environment "
+         "answer": ("Work experience: at MITIE (Teknip Technology) he created multi-stage Azure DevOps YAML pipelines with environment "
                     "approvals, ACR image scanning and Helm deployments to AKS for 10+ applications, cutting release lead "
                     "time from days to hours. At LSEG (Tech Mahindra, Technical Lead) he owned the Azure DevOps CI/CD "
                     "platform for 20+ application modules on reusable YAML templates, cutting deployment effort by 50%+. "
                     "At URUS (Pulse Data Labs) he managed AKS workloads deployed through Azure DevOps and GitHub Actions."),
          "answer_te": te["azure-devops"],
-         "links": [{"label": "AKS Delivery Platform lab", "href": "projects/aks-delivery-platform.html"},
-                   {"label": "Experience", "href": "index.html#experience"}]},
+         "links": [{"label": "Experience timeline", "href": "index.html#experience"}],
+         "lab_note": {"text": ("Portfolio lab (synthetic, built to verify the pattern): the AKS Delivery Platform lab promotes one "
+                               "image Dev → QA → Prod with an approval gate. In its demo, release 1.1.0 fails the smoke test and "
+                               "the pipeline restores 1.0.0."),
+                      "text_te": te["lab-aks"],
+                      "links": [{"label": "AKS delivery case study", "href": "projects/aks-delivery-platform.html"},
+                                {"label": "Watch the rollback demo", "href": "demos/aks-delivery-platform.html"}]}},
         {"id": "sre", "kind": "career", "title": "SRE and reliability experience",
          "keywords": ["sre", "site reliability", "reliability", "on-call", "on call", "slo", "error budget", "postmortem", "incident response"],
          "keywords_te": ["ఎస్ఆర్ఈ", "రిలయబిలిటీ"],
-         "answer": ("At Pulse Data Labs he served as L3 escalation in a 24x7 PagerDuty on-call rotation, troubleshooting "
+         "answer": ("Work experience: at Pulse Data Labs he served as L3 escalation in a 24x7 PagerDuty on-call rotation, troubleshooting "
                     "Kubernetes failures such as CrashLoopBackOff, OOMKilled pods, ingress and DNS issues. He defined SLIs, "
                     "SLOs and error budgets with application teams, wrote blameless postmortems and prepared disaster "
                     "recovery plans against RTO and RPO targets. At MITIE he tuned alerting and reduced false-positive alerts by about 45%."),
          "answer_te": te["sre"],
-         "links": [{"label": "SRE incident lab", "href": "projects/aks-observability-sre-lab.html"}]},
+         "links": [{"label": "Experience timeline", "href": "index.html#experience"}],
+         "lab_note": {"text": ("Portfolio lab (simulated incident): the AKS Observability and SRE lab walks from a 14.4x "
+                               "burn-rate page to a trace-led investigation, a cache-fallback mitigation and a blameless postmortem."),
+                      "text_te": te["lab-sre"],
+                      "links": [{"label": "SRE lab case study", "href": "projects/aks-observability-sre-lab.html"},
+                                {"label": "Watch the incident demo", "href": "demos/aks-observability-sre-lab.html"}]}},
         {"id": "experience", "kind": "career", "title": "Work history and employers",
          "keywords": ["experience", "work history", "employers", "companies", "worked", "career", "jobs", "years", "clients"],
          "keywords_te": ["కంపెనీలు", "ఉద్యోగాలు", "కెరీర్"],
@@ -167,10 +228,7 @@ def build_kb(content, extra, projects):
          "keywords": ["certification", "certified", "certificate", "az-104", "az-400", "cka"],
          "answer": "No certifications are listed in his resume, so I can't confirm any. The projects in this portfolio show the hands-on work instead.",
          "links": []},
-        {"id": "contact", "kind": "meta", "title": "How to contact",
-         "keywords": ["contact", "email", "phone", "reach", "linkedin", "call him"],
-         "answer": "Contact details are kept off this public site. Please use the contact information on his resume, or open an issue on the GitHub repository.",
-         "links": [{"label": "GitHub repository", "href": "{repo_url}"}]},
+        contact_entry(contact),
         {"id": "synthetic", "kind": "meta", "title": "Are the projects real client work?",
          "keywords": ["real", "client code", "synthetic", "employer", "fake", "simulated", "production data", "is this real"],
          "answer": ("No. The six projects are original portfolio labs inspired by his experience. They use synthetic apps, "
@@ -316,7 +374,8 @@ def main():
         pr["vtt"] = os.path.exists(os.path.join(VIDEOS, pr["slug"] + ".vtt"))
         write_demo_md(cfg, pr, sections, raw, pr["video"])
 
-    kb = build_kb(content, extra, projects)
+    cfg["contact"] = check_contact(cfg)
+    kb = build_kb(content, extra, projects, cfg["contact"])
     kb_json = json.dumps(kb, ensure_ascii=False, indent=1).replace("{repo_url}", cfg["repo_url"])
 
     if os.path.exists(OUT):
@@ -328,7 +387,8 @@ def main():
 
     env = Environment(loader=FileSystemLoader(os.path.join(HERE, "templates")),
                       autoescape=select_autoescape(["html"]))
-    common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": extra["samples"]}
+    common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": extra["samples"],
+              "welcome": extra["welcome"]}
 
     def write(rel, template, **ctx):
         path = os.path.join(OUT, rel)
@@ -338,9 +398,10 @@ def main():
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(html_text)
 
-    write("index.html", "index.html", content=content,
-          flagship=[p for p in projects if p["tier"] == "flagship"],
-          supporting=[p for p in projects if p["tier"] == "supporting"])
+    lead = [p for p in projects if p.get("lead")]
+    write("index.html", "index.html", content=content, lead=lead,
+          flagship=[p for p in projects if p["tier"] == "flagship" and p not in lead],
+          supporting=[p for p in projects if p["tier"] == "supporting" and p not in lead])
     for pr in projects:
         write(f"projects/{pr['slug']}.html", "project.html", p=pr)
         write(f"demos/{pr['slug']}.html", "demo.html", p=pr)

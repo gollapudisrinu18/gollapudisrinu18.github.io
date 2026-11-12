@@ -90,6 +90,7 @@ jobs:
       - run: pip install jinja2 pytest playwright
       - run: python site/build_site.py
       - run: node --test tests/site/kb.test.js
+      - run: python -m pytest -q tests/site/test_build_contact.py
       - name: Browser tests (Chrome)
         run: |
           python -m http.server 8765 --directory _site &
