@@ -237,7 +237,7 @@ def test_internal_links_and_images_resolve():
     bad = []
     for html_file in SITE.rglob("*.html"):
         text = html_file.read_text(encoding="utf-8")
-        for ref in re.findall(r'(?:href|src)="([^"#]+)', text):
+        for ref in re.findall(r'(?:href|src)="([^"#?]+)', text):
             if re.match(r"^(https?:|data:|mailto:)", ref):
                 continue
             if not (html_file.parent / ref).resolve().exists():

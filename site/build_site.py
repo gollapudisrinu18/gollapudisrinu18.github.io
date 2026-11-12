@@ -416,6 +416,14 @@ def main():
 
     env = Environment(loader=FileSystemLoader(os.path.join(HERE, "templates")),
                       autoescape=select_autoescape(["html"]))
+    # Cache-busting: GitHub Pages lets browsers cache CSS/JS for 10 minutes.
+    h = hashlib.sha256()
+    for sub in ("css", "js"):
+        d = os.path.join(STATIC, "assets", sub)
+        for name in sorted(os.listdir(d)):
+            with open(os.path.join(d, name), "rb") as fh:
+                h.update(fh.read())
+    env.globals["v"] = h.hexdigest()[:10]
     common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": kb["samples"],
               "welcome": extra["welcome"], "resume": resume}
 
