@@ -56,10 +56,10 @@
       '<button type="button" class="btn small ghost" data-agent-stop disabled>Stop audio</button>' +
       '<button type="button" class="btn small ghost" data-agent-clear>Clear</button>' +
     '</div>' +
-    '<p class="agent-privacy">The microphone starts only when you press the mic button; your browser\'s speech service may process the audio. ' +
+    '<details class="agent-privacy"><summary>Privacy and sources</summary><p>The microphone starts only when you press the mic button; your browser\'s speech service may process the audio. ' +
       (endpoint ? "Questions are sent to the portfolio's AI endpoint to write the answer and are not stored on this page. "
                 : "Answers are produced in this page from the portfolio content; nothing is sent to a server. ") +
-      'Employer facts come from the resume; project results are portfolio labs with synthetic data.</p>';
+      'Employer facts come from the resume; project results are portfolio labs with synthetic data.</p></details>';
 
   document.body.appendChild(fab);
   document.body.appendChild(panel);
