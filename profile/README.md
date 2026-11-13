@@ -1,10 +1,11 @@
 ### Hi, I'm Srinivasa Rao Gollapudi 👋
 
-**Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)** · 11+ years in IT · Bangalore, India · **Immediate joiner · Remote only**
+**Senior Azure DevOps Engineer | Site Reliability Engineer (SRE) | Azure Infrastructure Engineer** · 11+ years in IT · Bangalore, India · **Immediate joiner · Fully remote only**
 
 I build Azure delivery platforms and keep them reliable: multi-stage Azure Pipelines, AKS, Terraform, Entra ID and Key Vault on the platform side, and SLOs, error budgets, on-call and blameless postmortems on the reliability side.
 
-**Portfolio:** https://gollapudisrinu18.github.io/my-profile/ (experience, resume, architecture diagrams, six case studies and a guided tour)
+**Portfolio:** https://gollapudisrinu18.github.io/ (experience, resume, architecture diagrams, six case studies and a guided tour)
+**Resume:** [download the final DOCX](https://gollapudisrinu18.github.io/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx)
 
 #### Featured case studies
 - **AKS Delivery Platform with Azure DevOps**: approvals, smoke tests and automatic Helm rollback
