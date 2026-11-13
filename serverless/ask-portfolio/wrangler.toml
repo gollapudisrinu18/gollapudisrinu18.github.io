@@ -1,0 +1,8 @@
+name = "ask-portfolio"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://gollapudisrinu18.github.io"
+SITE_URL = "https://gollapudisrinu18.github.io/"
+# MODEL = "<Claude model id>"   # set this, e.g. a current Claude Haiku or Sonnet model id
