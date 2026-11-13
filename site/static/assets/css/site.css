@@ -454,12 +454,9 @@ body.rec .stage-head strong::after { content: " · " attr(data-title); font-weig
 .resume-page-title { font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 1rem; }
 .resume-wrap { max-width: 1000px; }
 .resume-viewer { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #525659; box-shadow: var(--shadow); }
-.pdf-frame { display: block; width: 100%; height: min(1300px, calc(100vh - 150px)); min-height: 560px; border: 0; }
-.pdf-pages { display: none; padding: .6rem; gap: .6rem; flex-direction: column; background: #e9edf2; }
-.pdf-pages img { display: block; width: 100%; height: auto; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
-@media (max-width: 900px) { .pdf-frame { display: none; } .pdf-pages { display: flex; } .pdf-pages[aria-hidden] { } }
-.resume-viewer.no-pdf .pdf-frame { display: none; }
-.resume-viewer.no-pdf .pdf-pages { display: flex; }
+.pdf-pages { display: flex; padding: .6rem; gap: .6rem; flex-direction: column; background: #e9edf2; }
+.pdf-pages img { display: block; width: 100%; height: auto; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; pointer-events: none; }
 
 /* ---------- remote preference + contact ---------- */
 .remote-pref { display: inline-flex; align-items: center; gap: .55rem; margin: 0 0 1rem; padding: .5rem .85rem; border-radius: 10px;
