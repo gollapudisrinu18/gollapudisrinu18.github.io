@@ -11,6 +11,7 @@
     <div class="case-links">
       <a class="btn primary" href="#walkthrough">{{ 'Watch the recorded demo' if p.video else 'Open the walkthrough' }}</a>
       <a class="btn" href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+      <button type="button" class="btn explain" data-explain="{{ p.slug }}">▶ Explain this project</button>
     </div>
   </header>
   <div class="case-grid">

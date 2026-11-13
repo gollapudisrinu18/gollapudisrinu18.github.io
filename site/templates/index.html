@@ -6,6 +6,7 @@
       <h1 id="hero-name">{{ profile.name }}</h1>
       <p class="headline">{{ profile.headline }}</p>
       <p class="lead">{{ profile.intro }}</p>
+      <p class="remote-pref" data-remote-pref><span class="remote-dot" aria-hidden="true"></span>{{ profile.remote_pref }}</p>
       <ul class="facts" aria-label="Availability">
         <li>11+ years in IT</li>
         <li>Immediate joiner</li>
@@ -20,6 +21,7 @@
         <div class="cta-secondary" role="group" aria-label="Audio intro and guided tour">
           <button class="btn" type="button" data-intro-play aria-pressed="false" aria-controls="intro-panel">▶ Play intro</button>
           <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
+          <button class="btn" type="button" data-agent-open aria-controls="ask" aria-expanded="false">Ask the Portfolio</button>
           <button class="btn ghost" type="button" data-intro-transcript aria-expanded="false" aria-controls="intro-panel">Intro transcript</button>
         </div>
       </div>
@@ -39,7 +41,7 @@
       <ul>
         {% for item in profile.impact %}<li><span class="sr-only">{{ item.text }}</span><strong aria-hidden="true">{{ item.figure }}</strong><span aria-hidden="true">{{ item.label }}</span></li>{% endfor %}
       </ul>
-      <p class="outcomes-note">Employer outcomes from the resume. Portfolio lab results are labelled separately below.</p>
+      <p class="outcomes-note">{{ profile.impact_note }} Portfolio lab results are labelled separately below.</p>
     </aside>
   </div>
 </section>
@@ -63,6 +65,7 @@
           <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
           <a class="btn small" href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
           <a class="btn small" href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+          <button type="button" class="btn small explain" data-explain="{{ p.slug }}" aria-label="Explain this project: {{ p.title }}">▶ Explain this project</button>
         </div>
       </article>
       {% endfor %}
@@ -79,6 +82,7 @@
           <a href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
           <a href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
           <a href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+          <button type="button" class="link-btn explain" data-explain="{{ p.slug }}" aria-label="Explain this project: {{ p.title }}">▶ Explain this project</button>
         </div>
       </li>
       {% endfor %}
@@ -127,6 +131,28 @@
       {% for g in content.skills %}<div><dt>{{ g.group }}</dt><dd>{{ g['items'] | join(', ') }}</dd></div>{% endfor %}
     </dl>
     <p class="muted">Education: {{ content.education }}.{% if resume %} <a href="{{ root }}resume.html">View the full resume</a>.{% endif %}</p>
+  </div>
+</section>
+
+<section id="contact" class="contact" aria-labelledby="contact-h">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="contact-h">Contact</h2>
+      <p class="remote-pref" data-remote-pref><span class="remote-dot" aria-hidden="true"></span>{{ profile.remote_pref }}</p>
+    </div>
+    <div class="contact-grid">
+      <dl class="contact-facts">
+        <div><dt>Availability</dt><dd>Immediate joiner · Remote only</dd></div>
+        <div><dt>Based in</dt><dd>{{ profile.location }} (open to remote roles across time zones)</dd></div>
+        <div><dt>Most recent role</dt><dd>{{ profile.impact_source }}</dd></div>
+        {% if cfg.contact and cfg.contact.email %}<div><dt>Email</dt><dd><a href="mailto:{{ cfg.contact.email }}">{{ cfg.contact.email }}</a></dd></div>{% endif %}
+      </dl>
+      <div class="contact-actions">
+        {% if cfg.contact and cfg.contact.email %}<a class="btn primary" href="mailto:{{ cfg.contact.email }}?subject=Remote%20Senior%20Azure%20DevOps%20%2F%20SRE%20role">Email Srinivasa</a>{% endif %}
+        {% if resume %}<a class="btn" href="{{ root }}resume.html">View Resume</a>{% endif %}
+        <button class="btn" type="button" data-agent-open aria-controls="ask" aria-expanded="false">Ask the Portfolio</button>
+      </div>
+    </div>
   </div>
 </section>
 

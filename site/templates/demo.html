@@ -5,7 +5,7 @@
 <div class="wrap walk">
   <p class="breadcrumb"><a href="{{ root }}index.html#projects">Projects</a> / <a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a> / Interactive walkthrough</p>
   <h1 class="walk-title">Interactive walkthrough: {{ p.title }}</h1>
-  <p class="muted walk-note"><span class="lab-tag">Portfolio lab</span> Scenes use the real output of <code>{{ p.run }}</code>, run locally. Use the ← → keys or the buttons.</p>
+  <p class="muted walk-note"><span class="lab-tag">Portfolio lab</span> Scenes use the real output of <code>{{ p.run }}</code>, run locally. Use the ← → keys or the buttons. <button type="button" class="link-btn explain" data-explain="{{ p.slug }}">▶ Explain this project</button></p>
   <div class="stage" data-walkthrough>
     <div class="stage-head"><strong data-title="{{ p.title }}">Interactive walkthrough</strong><span class="count" aria-live="polite"></span></div>
     <div class="scene title-scene" data-caption="{{ p.demo.intro }}">
