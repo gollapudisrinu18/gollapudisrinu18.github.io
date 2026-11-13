@@ -6,7 +6,7 @@
 
 **Portfolio:** https://gollapudisrinu18.github.io/
 
-**Resume:** [view online](https://gollapudisrinu18.github.io/resume.html) · [download the final DOCX](https://gollapudisrinu18.github.io/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx) (`site/static/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx`)
+**Resume:** [view online](https://gollapudisrinu18.github.io/resume.html) (view only)
 
 That one link covers everything: professional experience, skills, the architecture overview, six case studies with diagrams, recorded demos and interactive walkthroughs, a guided portfolio tour, and the *Ask the Portfolio* voice agent. The old address (`/my-profile/`) forwards here. This repository holds the source code for the six labs and the website.
 
@@ -45,7 +45,7 @@ Every project folder has a `README.md` (setup, expected results, Azure prerequis
 - **Audio intro and portfolio tour:** audio plays only after a click. *Play intro* (next to the hero) reads a short welcome with a transcript and Play / Pause / Resume / Stop controls. *Start Portfolio Tour* walks through the three diagrams with captions, Next, Back, Mute, Stop and optional narration (Play / Pause / Resume narration). Each step change cancels the previous narration, failures fall back to text with a "Try audio again" control, and neither ever uses the microphone.
 - **Ask the Portfolio (voice agent):** on every page. Ask by voice (browser speech recognition, only after pressing the mic) or by typing; answers appear as text and are read aloud; follow-ups keep the context of the last project or employer ("What tools does it use?", "What were the results there?"), with optional hands-free follow-ups. Each project has **Explain this project**, a guided tour scripted from the case study (problem, architecture, tools, implementation, documented outcome). Answers come from `data/agent.json` (built from `site/src/resume.json`, `content.json` and the architecture diagrams) and are labelled *Work experience · from resume*, *Portfolio lab*, or *Not in this portfolio* when the answer isn't there. No keys are needed. An optional AI endpoint (Cloudflare Worker in `serverless/ask-portfolio`, key kept server-side) can be switched on with `agent_endpoint` in `site/config.json`.
 - **Contact:** a recruiter-facing section with the remote-only preference, availability, email and resume.
-- **Resume:** *View Resume* opens the approved resume as a PDF inside the portfolio (`resume.html`). Desktop browsers show it in their PDF viewer; phones and browsers without one see images of the same pages. There is no download button (browser PDF viewers have their own save controls). A text version from `site/src/resume.json` is available to screen readers.
+- **Resume:** *View Resume* opens the approved resume inside the portfolio (`resume.html`) as view-only page images. There is no download button, no PDF viewer, and the DOCX and PDF are not published to the site. A text version from `site/src/resume.json` is available to screen readers.
 
 ## Run everything locally
 
@@ -86,7 +86,7 @@ site/
   src/content.json                   profile, experience, skills and case study content
   src/kb-extra.json                  assistant samples, welcome text and Telugu answers
   src/resume.json                    resume text (from the approved .docx) for screen readers and the assistant
-  static/assets/resume/              the resume PDF shown on the site and its page images
+  static/assets/resume/              the resume page images shown on the site (view only)
   templates/, static/                page templates, CSS, JavaScript (speech, tour, Ask the Portfolio agent), videos
 serverless/ask-portfolio/            optional AI endpoint for the agent (Cloudflare Worker; key stays server-side)
 tools/                               demo capture and recording, issue import, Mermaid check, configure
@@ -98,10 +98,10 @@ docs/VERIFICATION.md                 what was checked, and what still needs Azur
 
 ## Update the resume
 
-The master resume is `site/static/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx`. The same file is uploaded to Naukri and offered as the download on the portfolio.
+The master resume (DOCX) is kept off this public repo so it can't be downloaded; only page images are published. The same file is uploaded to Naukri.
 
-1. Replace that DOCX with the new final version (keep the file name).
-2. Export it to PDF as `site/static/assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf` and regenerate the page images: `pdftoppm -png -r 150 <pdf> resume-page`, then convert to WebP.
+1. Export the new final DOCX to PDF on your machine.
+2. Regenerate the page images from it: `pdftoppm -png -r 150 <pdf> resume-page`, convert to WebP, and replace `site/static/assets/resume/resume-page-*.webp`. Don't commit the DOCX or PDF (`.gitignore` blocks them).
 3. Update `site/src/resume.json` to match, then run `python site/build_site.py`.
 
 ## Import the issue backlogs
