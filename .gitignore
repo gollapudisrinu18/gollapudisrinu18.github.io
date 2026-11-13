@@ -11,3 +11,7 @@ backend.hcl
 local.settings.json
 node_modules/
 *.sig.json
+
+# resume stays view-only: never commit the source files
+site/static/assets/resume/*.docx
+site/static/assets/resume/*.pdf
