@@ -2,33 +2,35 @@
   "profile": {
     "name": "Srinivasa Rao Gollapudi",
     "headline": "Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)",
-    "availability": "Immediate joiner · Open to fully remote roles",
+    "availability": "Immediate joiner · Remote only",
     "location": "Bangalore, India",
     "summary": "Senior DevOps Engineer and Site Reliability Engineer with 11+ years in IT. I moved from Linux and Windows Server administration into Microsoft Azure infrastructure, Azure DevOps CI/CD, AKS platform operations and SRE for enterprise clients in the UK and US. My recent work covers Azure Pipelines, AKS, ACR, Terraform, Entra ID, Key Vault and Azure Policy, L3 on-call escalation, SLOs and error budgets, and blameless postmortems.",
     "intro": "I build Azure DevOps CI/CD pipelines that ship to AKS on infrastructure defined in Terraform, and keep those services reliable with SLOs, burn-rate alerting, L3 on-call and blameless postmortems.",
     "impact": [
       {
-        "figure": "10+",
-        "label": "applications deployed to AKS",
-        "text": "10+ applications deployed to AKS"
+        "figure": "L3",
+        "label": "escalation in a 24x7 PagerDuty on-call rotation",
+        "text": "L3 escalation in a 24x7 PagerDuty on-call rotation"
       },
       {
-        "figure": "Days → hours",
-        "label": "release lead time",
-        "text": "Release lead time reduced from days to hours"
+        "figure": "SLOs",
+        "label": "SLIs, SLOs and error budgets defined with application teams",
+        "text": "Defined SLIs, SLOs and error budgets with application teams"
       },
       {
-        "figure": "~45%",
-        "label": "fewer false-positive alerts",
-        "text": "~45% fewer false-positive alerts"
+        "figure": "Dev · QA · Prod",
+        "label": "reusable Terraform modules published as Backstage golden paths",
+        "text": "Reusable Terraform modules for Dev, QA and Production, published as Backstage golden-path templates"
       }
     ],
-    "impact_source": "DevOps Engineer, Teknip Technology (client: MITIE), May 2024 – Feb 2026",
+    "impact_source": "Senior DevOps Engineer, Pulse Data Labs (client: URUS), Feb 2026 – Sep 2026",
     "about": [
       "I build delivery platforms that teams can trust: one pipeline that tests, scans, promotes and rolls back on its own, running on infrastructure defined in code.",
       "On the reliability side I define SLOs with application teams, alert on error-budget burn instead of noise, and write postmortems that lead to fixes.",
       "This site collects six hands-on Azure labs I built to show that work end to end. They use synthetic apps, data and incidents, so every lab can be run and checked by anyone."
-    ]
+    ],
+    "remote_pref": "Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles.",
+    "impact_note": "From the resume. The resume gives no figures for this role, so none are shown. Measured results from earlier roles (MITIE, LSEG) are listed under Experience."
   },
   "skills": [
     {
