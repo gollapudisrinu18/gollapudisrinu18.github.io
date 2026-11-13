@@ -5,7 +5,7 @@
 I build Azure delivery platforms and keep them reliable: multi-stage Azure Pipelines, AKS, Terraform, Entra ID and Key Vault on the platform side, and SLOs, error budgets, on-call and blameless postmortems on the reliability side.
 
 **Portfolio:** https://gollapudisrinu18.github.io/ (experience, resume, architecture diagrams, six case studies and a guided tour)
-**Resume:** [download the final DOCX](https://gollapudisrinu18.github.io/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx)
+**Resume:** [view online](https://gollapudisrinu18.github.io/resume.html)
 
 #### Featured case studies
 - **AKS Delivery Platform with Azure DevOps**: approvals, smoke tests and automatic Helm rollback
