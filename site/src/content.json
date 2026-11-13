@@ -23,7 +23,9 @@
         "text": "~45% fewer false-positive alerts"
       }
     ],
-    "impact_source": "DevOps Engineer, Teknip Technology (client: MITIE), May 2024 – Feb 2026",
+    "latest_summary": "Ran AKS workloads shipped through Azure DevOps and GitHub Actions CI/CD pipelines, built reusable Terraform modules for Dev, QA and Production, and served as L3 escalation in a 24x7 SRE on-call rotation.",
+    "impact_source": "DevOps Engineer · Teknip Technology Pvt Ltd · Client: MITIE · May 2024 – Feb 2026",
+    "narration": "This is the portfolio of Srinivasa Rao Gollapudi, a Senior Azure DevOps Engineer and Site Reliability Engineer with more than 11 years in IT. His latest role was Senior DevOps Engineer at Pulse Data Labs, for the client URUS, from February to September 2026. There he ran AKS workloads, CI/CD pipelines and Terraform modules, and served as L3 escalation in a 24 by 7 on-call rotation. The two featured portfolio labs use synthetic apps and data. In the AKS Delivery Platform lab, a pipeline promotes one image from Dev to QA to Production. In a local run, release 1.1.0 failed its smoke test, and the deploy script rolled back to 1.0.0 automatically. In the AKS Observability and SRE Incident Lab, a simulated incident made checkout slow. A burn-rate alert paged the on-call engineer, tracing pointed to the slow inventory lookup, and a fallback brought latency back down. For the details, choose View Projects for the case studies, or View Resume for his full experience.",
     "about": [
       "I build delivery platforms that teams can trust: one pipeline that tests, scans, promotes and rolls back on its own, running on infrastructure defined in code.",
       "On the reliability side I define SLOs with application teams, alert on error-budget burn instead of noise, and write postmortems that lead to fixes.",

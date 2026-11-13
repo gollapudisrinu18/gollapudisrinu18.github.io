@@ -4,13 +4,15 @@
 
 **Portfolio:** https://gollapudisrinu18.github.io/my-profile/
 
-That one link covers everything: professional experience, skills, the architecture overview, six case studies with diagrams, recorded demos and interactive walkthroughs, a guided portfolio tour, and the *Ask My Portfolio* assistant. This repository holds the source code for the six labs and the website.
+That one link covers everything: professional experience, skills, the architecture overview, six case studies with diagrams, recorded demos and interactive walkthroughs, and a short spoken walkthrough (*Listen to Portfolio*). This repository holds the source code for the six labs and the website.
 
 > The labs are original portfolio projects inspired by my work. They use synthetic applications, data, logs and incidents. No employer code, client internals or credentials are included. Each case study states what ran locally, what is simulated, what is checked in CI and what has not yet been run on Azure.
 
 ## Professional experience highlights
 
-From my role as DevOps Engineer at Teknip Technology (client: MITIE), May 2024 – Feb 2026:
+Latest role: Senior DevOps Engineer · Pulse Data Labs · Client: URUS · Feb 2026 – Sep 2026 (AKS workloads, Azure DevOps and GitHub Actions CI/CD, reusable Terraform modules, L3 SRE on-call).
+
+From my role as DevOps Engineer at Teknip Technology Pvt Ltd (client: MITIE), May 2024 – Feb 2026:
 
 - 10+ applications deployed to AKS
 - Release lead time reduced from days to hours
@@ -33,11 +35,11 @@ Every project folder has a `README.md` (setup, expected results, Azure prerequis
 
 ## What the website includes
 
-- **Navigation:** Experience, Projects, Architecture, Resume and Ask.
+- **Navigation:** Experience, Projects, Architecture and Resume.
+- **Hero:** *View Projects*, *View Resume* and one *Listen to Portfolio* button. The highlight card shows the latest role (Pulse Data Labs) and, separately, the Teknip Technology (MITIE) results.
 - **Featured projects:** directly below the hero, the AKS Delivery Platform and AKS Observability and SRE Incident Lab cards show the problem, what was built, one verified result labelled Local / Simulated / Azure-validated, and links to the case study, recorded demo and interactive walkthrough. The other four labs follow in a compact list.
 - **Architecture overview:** three diagrams drawn from the project source: delivery (Azure Pipelines → ACR → Dev/QA/Prod on AKS with an approval gate, smoke tests and rollback), infrastructure (Terraform hub-and-spoke, NSGs, private endpoint, private DNS) and reliability (metrics and traces → SLO burn-rate alert → investigation → mitigation → postmortem). They are generated as inline SVG by `site/diagrams.py`.
-- **Audio intro and portfolio tour:** audio plays only after a click. *Play intro* (next to the hero) reads a short welcome with a transcript and Play / Pause / Resume / Stop controls. *Start Portfolio Tour* walks through the three diagrams with captions, Next, Back, Mute, Stop and optional narration (Play / Pause / Resume narration). Each step change cancels the previous narration, failures fall back to text with a "Try audio again" control, and neither ever uses the microphone.
-- **Ask My Portfolio:** typed questions (voice input optional) answered from the resume and the case studies. Answers are labelled as work experience or portfolio lab, and link to the relevant diagram, case study, walkthrough or resume. English and Telugu.
+- **Listen to Portfolio:** a roughly one-minute spoken walkthrough for recruiters, read by the browser's own speech synthesis (`speechSynthesis`), so it works on GitHub Pages with no backend or API keys. It starts only when the button is pressed; the same button reads *Stop Audio* while playing and returns to *Listen to Portfolio* when stopped, finished or failed. Every start replays from the beginning and rapid clicks never overlap. If speech is unavailable or fails, a short message and the narration text are shown. No microphone, chat, autoplay or scrolling. The script is `profile.narration` in `site/src/content.json`; the code is `static/assets/js/listen.js` and `speech.js`.
 - **Resume:** *View Resume* opens the approved resume as a PDF inside the portfolio (`resume.html`). Desktop browsers show it in their PDF viewer; phones and browsers without one see images of the same pages. There is no download button (browser PDF viewers have their own save controls). A text version from `site/src/resume.json` is available to screen readers.
 
 ## Run everything locally
@@ -80,7 +82,7 @@ site/
   src/kb-extra.json                  assistant samples, welcome text and Telugu answers
   src/resume.json                    resume text (from the approved .docx) for screen readers and the assistant
   static/assets/resume/              the resume PDF shown on the site and its page images
-  templates/, static/                page templates, CSS, JavaScript (speech, tour, assistant), videos
+  templates/, static/                page templates, CSS, JavaScript (speech, Listen to Portfolio), videos
 tools/                               demo capture and recording, issue import, Mermaid check, configure
 tests/site/                          assistant tests (Node) and browser tests (Playwright)
 profile/README.md                    GitHub profile README

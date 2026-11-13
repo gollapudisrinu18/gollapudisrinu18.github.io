@@ -75,3 +75,19 @@ Not verifiable here: real speaker output, Safari/Firefox autoplay behaviour, and
 
 ## Publishing
 The repository is committed locally. Pushing to GitHub, enabling Pages and checking the live URLs need GitHub access. The final resume links are added only after the live site responds.
+
+## Listen to Portfolio and latest role (13 Nov 2026)
+
+| Check | Result |
+|---|---|
+| Hero | View Projects, View Resume and one *Listen to Portfolio* button; Play intro, Start Portfolio Tour, Intro transcript, the intro panel and the tour bar are removed (`tour.js` deleted). Project pages keep their recorded demos and interactive walkthroughs |
+| Narration | `profile.narration`, 164 words (about 50–60 s at a normal rate), English. Opens with the full name, Azure DevOps and SRE focus and 11+ years; latest role at Pulse Data Labs (URUS, Feb–Sep 2026); delivery lab rollback described as a local run, SRE lab incident as simulated; ends with View Projects and View Resume. Every fact checked against `content.json` and `resume.json` |
+| Playback | Starts only on click; button becomes Stop Audio and returns on stop, completion or error; replays from the start; seven rapid clicks never queue overlapping speech; Escape stops; cancelled on `pagehide`; no microphone, SpeechRecognition or scrolling |
+| Fallback | No speech support, a failing voice, blocked audio and silent speech all show a short message and the narration text, with no extra audio button. In headless Chrome (no voices installed) the real fallback appeared |
+| Speech fix | The sentence splitter broke "1.1.0" into fragments; it now splits only at punctuation followed by a space |
+| Experience | Hero card: Senior DevOps Engineer · Pulse Data Labs · Client: URUS · Feb 2026 – Sep 2026, then Teknip Technology Pvt Ltd (MITIE, May 2024 – Feb 2026) with the 10+ AKS apps, days → hours and ~45% results. Timeline, resume text and narration checked for the same names, dates and attribution |
+| Mobile | Hero buttons fit at 320, 375, 414 and 768 px with no horizontal scroll |
+| Tests | Node 23/23; browser 32/32 with the site served under `/my-profile/` |
+
+Not verifiable here: real speaker output and exact spoken length (the test browser has no voices).
+

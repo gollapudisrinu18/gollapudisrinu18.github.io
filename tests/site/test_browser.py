@@ -120,9 +120,7 @@ def test_diagrams_render_in_browser(browser):
             assert page.evaluate("(el) => el.complete && el.naturalWidth > 0", imgs.nth(i).element_handle())
 
 
-# ---------------- portfolio redesign: tour, architecture, case studies ----------------
-WELCOME = ("Welcome to Srinivasa\u2019s portfolio. Explore his Azure DevOps and SRE experience, view his resume, "
-           "or take a short tour of the project architectures.")
+# ---------------- portfolio redesign: hero, architecture, case studies ----------------
 HAS_RESUME = (SITE / "resume.html").exists()
 SLUGS = ["aks-delivery-platform", "aks-observability-sre-lab", "azure-hub-spoke-terraform",
          "azure-devsecops-supply-chain", "azure-functions-event-processing", "azure-dr-restore-drill"]
@@ -157,7 +155,7 @@ window.SpeechSynthesisUtterance = function(t){ this.text=t; };
 """
 NO_TTS = "delete window.speechSynthesis; delete window.SpeechSynthesisUtterance;"
 CODES = re.compile(r"not-allowed|synthesis-failed|\bnetwork\b|interrupted|audio-busy|\(\w+-\w+\)")
-STATUS_JS = "[...document.querySelectorAll('[data-tour-note],[data-welcome-status],.status-text')].map(e => e.textContent).join(' ')"
+STATUS_JS = "document.querySelector('[data-listen-status]').textContent"
 
 
 def home(browser, *scripts, **ctx):
@@ -166,7 +164,7 @@ def home(browser, *scripts, **ctx):
         context.add_init_script(sc)
     page = context.new_page()
     page.goto(BASE + "index.html")
-    expect(page.locator("[data-intro-play]")).to_be_visible()
+    expect(page.locator("[data-listen]")).to_be_visible()
     return page
 
 
@@ -179,30 +177,6 @@ def test_navigation_is_compact(browser):
     labels = [a.inner_text() for a in page.locator("#site-nav a").all()]
     assert labels == (["Experience", "Projects", "Architecture", "Resume"] if HAS_RESUME
                       else ["Experience", "Projects", "Architecture"])
-
-
-def test_hero_actions_and_outcomes(browser):
-    page = home(browser, NO_SPEECH)
-    hero = page.locator(".hero")
-    expect(hero.locator(".headline")).to_have_text("Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)")
-    for fact in ("11+ years in IT", "Immediate joiner", "Remote only", "Bangalore, India"):
-        expect(hero.locator(".facts")).to_contain_text(fact)
-    primaries = [b.inner_text() for b in hero.locator(".cta-primary .btn.primary").all()]
-    assert primaries == (["View Projects", "View Resume"] if HAS_RESUME else ["View Projects"])
-    secondary = [b.inner_text() for b in hero.locator(".cta-secondary .btn").all()]
-    assert secondary[:2] == ["▶ Play intro", "Start Portfolio Tour"], secondary
-    assert hero.locator(".cta-secondary .btn.primary").count() == 0
-    assert page.locator("[data-tour-start]").count() == 1
-    assert "Senior Azure DevOps Engineer" not in hero.locator(".lead").inner_text()
-    assert page.locator("text=Download Resume").count() == 0
-    assert page.locator("a[href*='linkedin']").count() == 0
-    out = page.locator(".outcomes")
-    expect(out).to_contain_text("Professional experience")
-    expect(out).to_contain_text("MITIE")
-    for t in ("10+ applications deployed to AKS", "Release lead time reduced from days to hours", "~45% fewer false-positive alerts"):
-        expect(out).to_contain_text(t)
-    snap = page.locator(".outcomes ul").aria_snapshot()
-    assert snap.count("10+") == 1 and snap.count("45%") == 1, snap
 
 
 def test_buttons_have_visible_focus(browser):
@@ -280,190 +254,6 @@ def test_case_studies_and_walkthroughs(browser):
         expect(page.locator(".count")).to_have_text(re.compile("Scene 1 of"))
 
 
-def test_nothing_plays_until_play_intro(browser):
-    page = home(browser, FAKE_SR, FAKE_TTS)
-    page.wait_for_timeout(400)
-    page.click("h1")
-    page.keyboard.press("Space")
-    page.wait_for_timeout(400)
-    assert page.evaluate("window.__spoken.length") == 0
-    expect(page.locator("[data-intro]")).to_be_hidden()
-    page.click("[data-intro-transcript]")                       # transcript without audio
-    expect(page.locator("[data-intro-text]")).to_have_text(WELCOME)
-    assert page.evaluate("window.__spoken.length") == 0
-    page.click("[data-intro-play]")
-    page.wait_for_function("window.__spoken.length > 0")
-    page.wait_for_timeout(300)
-    assert spoken(page) == WELCOME
-    assert page.evaluate("window.__rec.length") == 0
-
-
-def test_intro_play_pause_resume_stop(browser):
-    page = home(browser, FAKE_SR, HOLD_TTS)
-    page.click("[data-intro-play]")
-    toggle = page.locator("[data-intro-toggle]")
-    expect(toggle).to_have_text("Pause")
-    expect(page.locator("[data-intro-status]")).to_contain_text("Playing")
-    toggle.click()
-    expect(toggle).to_have_text("Resume")
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-    toggle.click()
-    expect(toggle).to_have_text("Pause")
-    page.wait_for_function("window.speechSynthesis.speaking")
-    page.click("[data-intro-stop]")
-    expect(toggle).to_have_text("Play")
-    expect(page.locator("[data-intro-status]")).to_contain_text("stopped")
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-    expect(page.locator("[data-intro-stop]")).to_be_disabled()
-    assert page.evaluate("window.__rec.length") == 0
-
-
-def test_pause_stops_and_resume_repeats_sentence(browser):
-    """Pause must not rely on speechSynthesis.pause(): Chrome on Windows hangs the next sentence."""
-    page = home(browser, HOLD_TTS)
-    page.click("[data-intro-play]")
-    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Welcome')")
-    page.click("[data-intro-toggle]")                       # Pause
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-    assert page.evaluate("window.__paused || 0") == 0       # engine pause() is never used
-    page.wait_for_timeout(400)
-    assert page.evaluate("window.__spoken.length") == 1     # nothing new while paused
-    page.click("[data-intro-toggle]")                       # Resume
-    page.wait_for_function("window.__spoken.length === 2")
-    assert page.evaluate("window.__spoken[1].text").startswith("Welcome")   # repeats the paused sentence
-    page.evaluate("window.speechSynthesis._u.onend()")      # finish it: next sentence follows
-    page.wait_for_function("window.__spoken.length === 3")
-    assert page.evaluate("window.__spoken[2].text").startswith("Explore")
-
-
-def test_tour_controls_and_captions(browser):
-    page = home(browser, FAKE_SR, HOLD_TTS)
-    page.click("[data-tour-start]")
-    bar = page.locator("[data-tour]")
-    expect(bar).to_be_visible()
-    expect(bar.locator("[data-tour-step]")).to_have_text("Delivery · 1 of 4")
-    expect(bar.locator("[data-tour-caption]")).to_contain_text("Delivery.")
-    expect(page.locator("#arch-delivery")).to_have_class(re.compile("tour-focus"))
-    page.wait_for_timeout(300)
-    assert page.evaluate("window.__spoken.length") == 0
-    play = page.locator("[data-tour-play]")
-    play.click()
-    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Delivery.')")
-    expect(play).to_have_text("Pause narration")
-    play.click()
-    expect(play).to_have_text("Resume narration")
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-    play.click()
-    expect(play).to_have_text("Pause narration")
-    page.wait_for_function("window.speechSynthesis.speaking")
-    page.click("[data-tour-next]")
-    expect(bar.locator("[data-tour-step]")).to_have_text("Infrastructure · 2 of 4")
-    expect(bar.locator("[data-tour-caption]")).to_contain_text("Infrastructure.")
-    expect(page.locator("[data-tab=infrastructure]")).to_have_attribute("aria-selected", "true")
-    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Infrastructure')")
-    assert page.evaluate("window.__cancelled") >= 1
-    page.click("[data-tour-back]")
-    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Delivery.')")
-    page.click("[data-tour] [data-mute]")
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-    expect(bar.locator("[data-tour-caption]")).to_contain_text("Delivery.")
-    n = page.evaluate("window.__spoken.length")
-    page.click("[data-tour-next]")
-    page.wait_for_timeout(400)
-    assert page.evaluate("window.__spoken.length") == n
-    play.click()
-    page.wait_for_function(f"window.__spoken.length > {n}")
-    expect(page.locator("[data-tour] [data-mute]")).to_have_attribute("aria-pressed", "false")
-    page.click("[data-tour-stop]")
-    expect(bar).to_be_hidden()
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-    assert page.evaluate("window.__rec.length") == 0
-
-
-def test_intro_and_tour_never_overlap(browser):
-    page = home(browser, HOLD_TTS)
-    page.click("[data-intro-play]")
-    page.wait_for_function("window.speechSynthesis.speaking")
-    page.click("[data-tour-start]")
-    assert page.evaluate("window.speechSynthesis.speaking") is False   # intro stopped by the tour
-    page.click("[data-tour-play]")
-    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Delivery.')")
-    page.click("[data-tour-stop]")
-    page.click("[data-intro-play]")
-    page.wait_for_function("window.speechSynthesis._u && window.speechSynthesis._u.text.startsWith('Welcome')")
-
-
-def test_tour_finish_and_free_exploration(browser):
-    page = home(browser, NO_SPEECH, FAKE_TTS)
-    page.click("[data-tour-start]")
-    for _ in range(3):
-        page.click("[data-tour-next]")
-    expect(page.locator("[data-tour-next]")).to_have_text("Finish")
-    expect(page.locator("#projects")).to_have_class(re.compile("tour-focus"))
-    page.locator("#projects a", has_text="Case study").first.click()
-    expect(page).to_have_url(re.compile(r"projects/aks-delivery-platform\.html$"))
-
-
-def test_speech_failure_shows_friendly_fallback(browser):
-    page = home(browser, failing_tts("synthesis-failed"))
-    page.click("[data-tour-start]")
-    page.click("[data-tour-play]")
-    note = page.locator("[data-tour-note]")
-    expect(note).to_contain_text("Audio couldn't start")
-    expect(page.locator("[data-tour-play]")).to_have_text("Try audio again")
-    expect(page.locator("[data-tour-caption]")).to_contain_text("Delivery.")
-    assert page.evaluate("window.__spoken.length") == 2
-    page.click("[data-tour-play]")
-    expect(note).to_contain_text("Audio couldn't start")
-    page.click("[data-tour-stop]")
-    page.click("[data-intro-play]")
-    expect(page.locator("[data-intro-status]")).to_contain_text("Audio couldn't start")
-    expect(page.locator("[data-intro-text]")).to_be_visible()
-    expect(page.locator("[data-intro-toggle]")).to_have_text("Try again")
-    assert not CODES.search(page.evaluate("[...document.querySelectorAll('[data-tour-note],[data-intro-status],.status-text')].map(e => e.textContent).join(' ')"))
-
-
-def test_blocked_and_silent_speech(browser):
-    page = home(browser, failing_tts("not-allowed"))
-    page.click("[data-intro-play]")
-    expect(page.locator("[data-intro-status]")).to_contain_text("needs a click")
-    page = home(browser, SILENT_TTS)
-    page.click("[data-intro-play]")
-    expect(page.locator("[data-intro-status]")).to_contain_text("Audio couldn't start", timeout=20000)
-
-
-def test_no_speech_support_keeps_text(browser):
-    page = home(browser, NO_TTS)
-    expect(page.locator("[data-intro-play]")).to_be_disabled()
-    page.click("[data-intro-transcript]")
-    expect(page.locator("[data-intro-text]")).to_have_text(WELCOME)
-    page.click("[data-tour-start]")
-    expect(page.locator("[data-tour-play]")).to_be_disabled()
-    expect(page.locator("[data-tour-caption]")).to_contain_text("Delivery.")
-    page.click("[data-tour-next]")
-    expect(page.locator("[data-tour-caption]")).to_contain_text("Infrastructure.")
-
-
-def test_speech_stops_when_leaving_page(browser):
-    page = home(browser, HOLD_TTS)
-    page.click("[data-tour-start]")
-    page.click("[data-tour-play]")
-    page.wait_for_function("window.speechSynthesis.speaking")
-    page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide'))")
-    assert page.evaluate("window.speechSynthesis.speaking") is False
-
-
-def test_tour_keyboard(browser):
-    page = home(browser, NO_SPEECH, FAKE_TTS)
-    page.locator("[data-tour-start]").focus()
-    page.keyboard.press("Enter")
-    expect(page.locator("[data-tour-next]")).to_be_focused()
-    page.keyboard.press("Enter")
-    expect(page.locator("[data-tour-step]")).to_contain_text("2 of 4")
-    page.keyboard.press("Escape")
-    expect(page.locator("[data-tour]")).to_be_hidden()
-
-
 def test_mobile_layout(browser):
     page = home(browser, NO_SPEECH, viewport={"width": 390, "height": 844})
     for btn in page.locator(".hero .cta .btn").all():
@@ -524,3 +314,225 @@ def test_phone_diagrams_are_readable(browser):
         ids = page.evaluate(f"[...document.querySelectorAll('#arch-{key} .arch-narrow [marker-end]')].map(e => e.getAttribute('marker-end'))")
         assert ids and all(i.startswith(f"url(#{key}-m-") for i in ids)
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+
+
+# ---------------- Listen to Portfolio ----------------
+NARRATION_START = "This is the portfolio of Srinivasa Rao Gollapudi, a Senior Azure DevOps Engineer and Site Reliability Engineer with more than 11 years in IT."
+# Like HOLD_TTS, and records whether a second utterance was ever queued while one was still playing.
+OVERLAP_TTS = HOLD_TTS.replace("speak(u){", "speak(u){ if (this._u) window.__overlap = true;")
+NO_MIC = """
+window.__mic = 0;
+if (navigator.mediaDevices) navigator.mediaDevices.getUserMedia = () => { window.__mic++; return Promise.reject(new Error('no')); };
+"""
+LISTEN = "[data-listen]"
+
+
+def label(page):
+    return page.locator("[data-listen-label]").inner_text()
+
+
+def narration(page):
+    return page.locator("[data-listen-text]").text_content().strip()
+
+
+def test_hero_actions_and_outcomes(browser):
+    page = home(browser, NO_SPEECH)
+    hero = page.locator(".hero")
+    expect(hero.locator(".headline")).to_have_text("Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)")
+    for fact in ("11+ years in IT", "Immediate joiner", "Remote only", "Bangalore, India"):
+        expect(hero.locator(".facts")).to_contain_text(fact)
+    buttons = [" ".join(b.inner_text().split()) for b in hero.locator(".cta .btn").all()]
+    assert buttons == (["View Projects", "View Resume", "🔊 Listen to Portfolio"] if HAS_RESUME
+                       else ["View Projects", "🔊 Listen to Portfolio"]), buttons
+    # The old intro and tour controls are gone.
+    for gone in ("[data-intro-play]", "[data-tour-start]", "[data-intro-transcript]", "[data-intro]", "[data-tour]",
+                 ".cta-secondary", "text=Play intro", "text=Start Portfolio Tour", "text=Intro transcript"):
+        assert page.locator(gone).count() == 0, gone
+    expect(page.locator("[data-listen-fallback]")).to_be_hidden()
+    assert "Senior Azure DevOps Engineer" not in hero.locator(".lead").inner_text()
+    assert page.locator("text=Download Resume").count() == 0
+    out = page.locator(".outcomes")
+    expect(out.locator(".latest-role")).to_have_text("Senior DevOps Engineer · Pulse Data Labs · Client: URUS · Feb 2026 – Sep 2026")
+    for t in ("AKS", "CI/CD", "Terraform", "on-call"):
+        expect(out.locator(".latest-summary")).to_contain_text(t)
+    expect(out.locator(".outcomes-source")).to_have_text("DevOps Engineer · Teknip Technology Pvt Ltd · Client: MITIE · May 2024 – Feb 2026")
+    for t in ("10+ applications deployed to AKS", "Release lead time reduced from days to hours", "~45% fewer false-positive alerts"):
+        expect(out).to_contain_text(t)
+    snap = page.locator(".outcomes ul").aria_snapshot()
+    assert snap.count("10+") == 1 and snap.count("45%") == 1, snap
+
+
+def test_names_dates_and_attribution_consistent(browser):
+    page = home(browser, NO_SPEECH)
+    roles = page.locator(".timeline > li")
+    expect(roles.nth(0).locator("h3")).to_have_text("Senior DevOps Engineer")
+    expect(roles.nth(0).locator(".dates")).to_have_text("Feb 2026 – Sep 2026")
+    expect(roles.nth(0).locator(".org")).to_have_text("Pulse Data Labs · Client: URUS")
+    expect(roles.nth(1).locator(".dates")).to_have_text("May 2024 – Feb 2026")
+    expect(roles.nth(1).locator(".org")).to_have_text("Teknip Technology Pvt Ltd · Client: MITIE")
+    teknip, pulse = roles.nth(1).inner_text(), roles.nth(0).inner_text()
+    assert "10+ applications" in teknip and "days to hours" in teknip and "~45%" in teknip
+    assert "10+" not in pulse and "45%" not in pulse and "days to hours" not in pulse
+    text = narration(page)
+    assert text.startswith(NARRATION_START)
+    for t in ("Pulse Data Labs", "URUS", "February to September 2026", "AKS Delivery Platform lab", "smoke test",
+              "rolled back", "AKS Observability and SRE Incident Lab", "burn-rate alert", "tracing", "simulated",
+              "local run", "View Projects", "View Resume"):
+        assert t in text, t
+    # Teknip's results are not credited to Pulse Data Labs in the narration.
+    for t in ("Teknip", "45", "10+", "days to hours"):
+        assert t not in text, t
+    assert 140 <= len(text.split()) <= 175   # about 45–60 seconds at a normal speaking rate
+    if HAS_RESUME:
+        page.goto(BASE + "resume.html")
+        sr = page.locator("article.sr-only").text_content()
+        assert "Senior DevOps Engineer, Feb 2026 – Sep 2026" in sr and "Pulse Data Labs | Bangalore, India | Client: URUS" in sr
+        assert "DevOps Engineer, May 2024 – Feb 2026" in sr and "Teknip Technology Pvt Ltd | Bangalore, India | Client: MITIE" in sr
+
+
+def test_listen_nothing_plays_until_clicked(browser):
+    page = home(browser, "window.__srMode='speak';" + FAKE_SR, NO_MIC, HOLD_TTS)
+    page.mouse.click(5, 300)          # a click elsewhere does not start audio
+    page.keyboard.press("Tab")
+    page.wait_for_timeout(600)
+    assert page.evaluate("window.__spoken.length") == 0
+    page.click(LISTEN)
+    page.wait_for_function("window.__spoken.length > 0")
+    assert page.evaluate("window.__rec.length") == 0 and page.evaluate("window.__mic") == 0
+    assert page.evaluate("window.scrollY") == 0          # no guided scrolling
+
+
+def test_listen_start_and_stop(browser):
+    page = home(browser, HOLD_TTS)
+    btn = page.locator(LISTEN)
+    btn.click()
+    expect(page.locator("[data-listen-label]")).to_have_text("Stop Audio")
+    page.wait_for_function("window.speechSynthesis.speaking")
+    assert page.evaluate("window.__spoken[0].text").startswith("This is the portfolio of Srinivasa Rao Gollapudi")
+    btn.click()
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+    expect(page.locator("[data-listen-status]")).to_have_text("Audio stopped.")
+    assert page.evaluate("window.speechSynthesis.speaking") is False
+    page.wait_for_timeout(400)
+    assert label(page) == "Listen to Portfolio"     # a late callback does not flip the label back
+
+
+def test_listen_replays_from_beginning(browser):
+    page = home(browser, FAKE_TTS)
+    page.click(LISTEN)
+    page.wait_for_function("window.__spoken.length >= 3")
+    page.click(LISTEN)                                 # stop part-way
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+    n = page.evaluate("window.__spoken.length")
+    page.click(LISTEN)                                 # play again
+    page.wait_for_function(f"window.__spoken.length > {n}")
+    assert page.evaluate(f"window.__spoken[{n}].text").startswith(NARRATION_START[:40])
+
+
+def test_listen_natural_completion(browser):
+    page = home(browser, FAKE_TTS)
+    page.click(LISTEN)
+    expect(page.locator("[data-listen-label]")).to_have_text("Stop Audio")
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio", timeout=10000)
+    expect(page.locator("[data-listen-status]")).to_have_text("Walkthrough finished.")
+    spoken = " ".join(page.evaluate("window.__spoken.map(s => s.text)"))
+    assert spoken == narration(page)
+    assert all(l.startswith("en") for l in page.evaluate("window.__spoken.map(s => s.lang)"))
+
+
+def test_listen_rapid_clicks_never_overlap(browser):
+    page = home(browser, OVERLAP_TTS)
+    btn = page.locator(LISTEN)
+    for _ in range(7):
+        btn.click(delay=0)
+    expect(page.locator("[data-listen-label]")).to_have_text("Stop Audio")      # odd number of clicks: playing
+    page.wait_for_function("window.speechSynthesis.speaking")
+    page.wait_for_timeout(500)
+    assert not page.evaluate("window.__overlap")
+    assert page.evaluate("window.__spoken[window.__spoken.length - 1].text").startswith(NARRATION_START[:40])
+    btn.click()
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+    page.wait_for_timeout(500)
+    assert page.evaluate("window.speechSynthesis.speaking") is False
+
+
+@pytest.mark.parametrize("script,message", [
+    (NO_TTS, "Audio isn't available in this browser."),
+    (failing_tts("synthesis-failed"), "Audio couldn't play."),
+    (failing_tts("not-allowed"), "Your browser blocked audio."),
+])
+def test_listen_fallback_shows_text(browser, script, message):
+    page = home(browser, script)
+    page.click(LISTEN)
+    expect(page.locator("[data-listen-status]")).to_contain_text(message, timeout=15000)
+    expect(page.locator("[data-listen-status]")).to_contain_text("Here is the narration as text.")
+    fb = page.locator("[data-listen-fallback]")
+    expect(fb).to_be_visible()
+    assert fb.locator("button, audio, [data-listen]").count() == 0        # no second audio control
+    assert fb.inner_text().find(NARRATION_START) >= 0
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+    assert page.locator(".hero button").count() == 1
+    assert not CODES.search(page.evaluate(STATUS_JS))
+
+
+def test_listen_silent_speech_falls_back(browser):
+    page = home(browser, SILENT_TTS)
+    page.click(LISTEN)
+    expect(page.locator("[data-listen-status]")).to_contain_text("Audio couldn't play.", timeout=20000)
+    expect(page.locator("[data-listen-fallback]")).to_be_visible()
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+
+
+def test_listen_keyboard(browser):
+    page = home(browser, HOLD_TTS)
+    page.focus("[data-cta='projects']")
+    page.keyboard.press("Tab")
+    if HAS_RESUME:
+        page.keyboard.press("Tab")
+    assert page.evaluate("document.activeElement.matches('[data-listen]')")
+    shadow = page.evaluate("getComputedStyle(document.activeElement).boxShadow")
+    assert shadow and shadow != "none"                          # visible focus ring
+    page.keyboard.press("Enter")
+    expect(page.locator("[data-listen-label]")).to_have_text("Stop Audio")
+    page.keyboard.press("Space")
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+    page.keyboard.press("Space")
+    expect(page.locator("[data-listen-label]")).to_have_text("Stop Audio")
+    page.keyboard.press("Escape")
+    expect(page.locator("[data-listen-label]")).to_have_text("Listen to Portfolio")
+    assert page.evaluate("window.speechSynthesis.speaking") is False
+
+
+def test_listen_stops_when_leaving_page(browser):
+    page = home(browser, HOLD_TTS)
+    page.click(LISTEN)
+    page.wait_for_function("window.speechSynthesis.speaking")
+    page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide'))")
+    assert page.evaluate("window.speechSynthesis.speaking") is False
+
+
+@pytest.mark.parametrize("width", [320, 375, 414, 768])
+def test_hero_actions_fit_on_mobile(browser, width):
+    page = home(browser, NO_SPEECH, viewport={"width": width, "height": 800})
+    boxes = [b.bounding_box() for b in page.locator(".hero .cta .btn").all()]
+    for b in boxes:
+        assert b["x"] >= 0 and b["x"] + b["width"] <= width and b["height"] >= 42
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    lb = page.locator(LISTEN)
+    assert lb.evaluate("el => el.scrollWidth <= el.clientWidth")        # label not clipped
+
+
+def test_hero_links_reach_projects_and_resume(browser):
+    page = home(browser, NO_SPEECH)
+    page.click("[data-cta='projects']")
+    page.wait_for_function("location.hash === '#projects'")
+    expect(page.locator("#projects")).to_be_in_viewport()
+    if HAS_RESUME:
+        page.goto(BASE + "index.html")
+        with page.expect_navigation():
+            page.click("[data-cta='resume']")
+        assert page.url.endswith("resume.html")
+        expect(page.locator(".resume-page-title")).to_have_text("Resume")
+    for slug in ("aks-delivery-platform", "aks-observability-sre-lab"):
+        assert page.goto(BASE + f"projects/{slug}.html").ok
+        assert page.goto(BASE + f"demos/{slug}.html").ok

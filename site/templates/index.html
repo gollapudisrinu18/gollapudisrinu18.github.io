@@ -16,25 +16,21 @@
         <div class="cta-primary">
           <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
           {% if resume %}<a class="btn primary" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
-        </div>
-        <div class="cta-secondary" role="group" aria-label="Audio intro and guided tour">
-          <button class="btn" type="button" data-intro-play aria-pressed="false" aria-controls="intro-panel">▶ Play intro</button>
-          <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
-          <button class="btn ghost" type="button" data-intro-transcript aria-expanded="false" aria-controls="intro-panel">Intro transcript</button>
+          <button class="btn listen" type="button" data-listen><span class="listen-icon" aria-hidden="true">🔊</span> <span data-listen-label>Listen to Portfolio</span></button>
         </div>
       </div>
-      <div class="intro-panel" id="intro-panel" data-intro hidden>
-        <p class="intro-label">Intro transcript</p>
-        <p class="intro-text" data-intro-text>{{ welcome }}</p>
-        <div class="intro-controls">
-          <button type="button" class="btn small" data-intro-toggle>Play</button>
-          <button type="button" class="btn small" data-intro-stop disabled>Stop</button>
-          <span class="intro-status" role="status" aria-live="polite" data-intro-status></span>
-        </div>
+      <p class="listen-status" role="status" aria-live="polite" data-listen-status></p>
+      <div class="listen-text" data-listen-fallback hidden>
+        <p class="listen-text-label">Portfolio narration</p>
+        <p data-listen-text>{{ profile.narration }}</p>
       </div>
     </div>
+    {% set latest = content.experience[0] %}
     <aside class="outcomes" aria-labelledby="outcomes-h">
-      <h2 class="outcomes-label" id="outcomes-h">Professional experience</h2>
+      <h2 class="outcomes-label" id="outcomes-h">Latest role</h2>
+      <p class="latest-role"><strong>{{ latest.title }}</strong> · {{ latest.company }} · Client: {{ latest.client }} · {{ latest.dates }}</p>
+      <p class="latest-summary">{{ profile.latest_summary }}</p>
+      <h3 class="outcomes-label outcomes-sub">Previous role results</h3>
       <p class="outcomes-source">{{ profile.impact_source }}</p>
       <ul>
         {% for item in profile.impact %}<li><span class="sr-only">{{ item.text }}</span><strong aria-hidden="true">{{ item.figure }}</strong><span aria-hidden="true">{{ item.label }}</span></li>{% endfor %}
@@ -130,21 +126,7 @@
   </div>
 </section>
 
-<div class="tour-bar" data-tour hidden role="region" aria-label="Portfolio tour">
-  <div class="wrap tour-inner">
-    <p class="tour-step" data-tour-step></p>
-    <p class="tour-caption" data-tour-caption aria-live="polite"></p>
-    <p class="tour-note" data-tour-note role="status" aria-live="polite"></p>
-    <div class="tour-controls">
-      <button type="button" class="btn small" data-tour-back>Back</button>
-      <button type="button" class="btn small primary" data-tour-next>Next</button>
-      <button type="button" class="btn small" data-tour-play aria-pressed="false">Play narration</button>
-      <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
-      <button type="button" class="btn small ghost" data-tour-stop>Stop tour</button>
-    </div>
-  </div>
-</div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ root }}assets/js/tour.js?v={{ v }}" defer></script>
+<script src="{{ root }}assets/js/listen.js?v={{ v }}" defer></script>
 {% endblock %}
