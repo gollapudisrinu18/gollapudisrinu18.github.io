@@ -130,42 +130,6 @@
   </div>
 </section>
 
-<section id="ask" aria-labelledby="ask-h">
-  <div class="wrap assistant" data-assistant>
-    <div class="section-head">
-      <h2 id="ask-h">Ask My Portfolio</h2>
-      <p>Type a question. Answers come from the resume and the six case studies, are labelled as work experience or portfolio lab, and link to the page that backs them up.</p>
-    </div>
-    <div class="samples" aria-label="Suggested questions">
-      {% for s in samples %}<button type="button" class="btn small" data-sample="{{ s }}">{{ s }}</button>{% endfor %}
-    </div>
-    <div class="assistant-panel">
-      <div class="assistant-top">
-        <label for="ask-lang">Language
-          <select id="ask-lang">
-            <option value="en" selected>English</option>
-            <option value="te" lang="te">తెలుగు (Telugu)</option>
-          </select>
-        </label>
-        <label><input type="checkbox" id="speak-answers"> Read answers aloud</label>
-        <button type="button" class="btn small ghost clear">Clear</button>
-      </div>
-      <div class="log" role="log" aria-live="polite" aria-label="Conversation"></div>
-      <div class="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="status-text">Loading…</span></div>
-      <form class="ask-form" autocomplete="off">
-        <label class="sr-only" for="ask-input">Your question</label>
-        <input id="ask-input" type="text" lang="en" placeholder="Type a question, e.g. How does the AKS rollback work?" maxlength="300">
-        <button class="btn primary" type="submit">Ask</button>
-        <span class="voice-controls">
-          <button class="btn ghost mic" type="button" aria-pressed="false" aria-label="Start voice input (optional)">Voice</button>
-          <button class="btn ghost stop" type="button" disabled>Stop</button>
-        </span>
-      </form>
-    </div>
-    <p class="privacy">Privacy: questions and answers stay in this page and are not saved. The microphone starts only when you press Voice; the welcome and the tour never use it. If you use Voice, your browser's speech service (for example Google in Chrome) processes the audio. This tab remembers only whether the welcome has played and whether sound is muted.</p>
-  </div>
-</section>
-
 <div class="tour-bar" data-tour hidden role="region" aria-label="Portfolio tour">
   <div class="wrap tour-inner">
     <p class="tour-step" data-tour-step></p>
@@ -182,7 +146,5 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ root }}assets/js/kb.js?v={{ v }}" defer></script>
-<script src="{{ root }}assets/js/assistant.js?v={{ v }}" defer></script>
 <script src="{{ root }}assets/js/tour.js?v={{ v }}" defer></script>
 {% endblock %}

@@ -128,7 +128,7 @@
            "Traces point to the slow dependency, a cache fallback mitigates it, and a blameless postmortem records what to fix." },
     { key: "projects", title: "Explore",
       say: "That's the tour. These are portfolio labs with case studies, recorded demos and interactive walkthroughs. " +
-           "Open a project, view the resume, or ask the assistant a question." }
+           "Open a project or view the resume." }
   ];
 
   function renderNarr() {

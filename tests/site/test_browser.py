@@ -1,4 +1,4 @@
-"""Browser checks for the portfolio site and the voice assistant (Playwright + Chrome).
+"""Browser checks for the portfolio site (Playwright + Chrome).
 
   python site/build_site.py && python -m http.server 8765 --directory _site &
   SITE_URL=http://127.0.0.1:8765/ python -m pytest tests/site/test_browser.py
@@ -57,150 +57,11 @@ def browser():
         b.close()
 
 
-def page_with(browser, *scripts, **ctx):
-    context = browser.new_context(**ctx)
-    for s in scripts:
-        context.add_init_script(s)
-    page = context.new_page()
-    page.goto(BASE + "index.html#ask")
-    expect(page.locator(".status-text")).to_contain_text("Ready")
-    return page
-
-
-def test_text_question_and_labelled_answer(browser):
-    page = page_with(browser, NO_SPEECH)
-    page.fill("#ask-input", "What is your Azure DevOps experience?")
-    page.click(".ask-form button[type=submit]")
-    bot = page.locator(".msg.bot").last
-    expect(bot).to_contain_text("Work experience")
-    expect(bot).to_contain_text("10+ applications")
-    expect(bot.locator(".lab-note")).to_contain_text("Portfolio lab result")
-    expect(bot.locator("a", has_text="AKS delivery case study")).to_have_attribute("href", "./projects/aks-delivery-platform.html")
-
-
-def test_sample_question_lab_and_incident_labels(browser):
-    page = page_with(browser, NO_SPEECH)
-    page.click("[data-sample='How does the AKS rollback work?']")
-    expect(page.locator(".msg.bot").last).to_contain_text("Portfolio lab result")
-    page.click("[data-sample='Show me the SRE incident demo']")
-    last = page.locator(".msg.bot").last
-    expect(last).to_contain_text("Simulated incident")
-    last.locator("a", has_text="Interactive walkthrough").click()
-    expect(page).to_have_url(re.compile(r"demos/aks-observability-sre-lab\.html$"))
-
-
-def test_unavailable_information(browser):
-    page = page_with(browser, NO_SPEECH)
-    page.fill("#ask-input", "What is his salary expectation?")
-    page.press("#ask-input", "Enter")
-    expect(page.locator(".msg.bot").last).to_contain_text("I don't have that information")
-
-
-def test_fallback_when_speech_recognition_unavailable(browser):
-    page = page_with(browser, NO_SPEECH)
-    expect(page.locator(".mic")).to_be_disabled()
-    expect(page.locator(".status-text")).to_contain_text("Ready")
-    assert "isn't available in this browser" in page.locator(".mic").get_attribute("title")
-
-
-def test_microphone_permission_denied(browser):
-    page = page_with(browser, "window.__srMode='denied';" + FAKE_SR, FAKE_TTS)
-    page.click(".mic")
-    expect(page.locator(".status")).to_have_class(re.compile("error"))
-    expect(page.locator(".status-text")).to_contain_text("Microphone permission was denied")
-    expect(page.locator(".mic")).to_be_disabled()
-    page.fill("#ask-input", "Tell me about Srinivasa")      # typing still works
-    page.press("#ask-input", "Enter")
-    expect(page.locator(".msg.bot").last).to_contain_text("11+ years")
-
-
-def test_listening_status_and_stop(browser):
-    page = page_with(browser, "window.__srMode='hold';" + FAKE_SR, FAKE_TTS)
-    page.click(".mic")
-    expect(page.locator(".status")).to_have_class(re.compile("listening"))
-    expect(page.locator(".status-text")).to_contain_text("Listening (English)")
-    expect(page.locator(".mic")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator(".stop")).to_be_enabled()
-    page.click(".stop")
-    assert page.evaluate("window.__rec[0].aborted") is True
-    expect(page.locator(".status-text")).to_contain_text("Stopped")
-
-
-def test_voice_question_answered_and_read_aloud(browser):
-    page = page_with(browser, "window.__srMode='speak'; window.__phrase='How does the AKS rollback work?';" + FAKE_SR, FAKE_TTS)
-    page.check("#speak-answers")
-    page.click(".mic")
-    expect(page.locator(".msg.user").last).to_have_text("How does the AKS rollback work?")
-    expect(page.locator(".msg.bot").last).to_contain_text("helm rollback")
-    page.wait_for_function("window.__spoken.some(s => s.text.includes('helm rollback'))")
-    spoken = page.evaluate("window.__spoken[0]")
-    assert spoken["lang"].startswith("en")
-    assert page.evaluate("window.__rec[0].lang") == "en-US"
-
-
 def test_no_autoplay_before_interaction(browser):
-    page = page_with(browser, "window.__srMode='speak';" + FAKE_SR, FAKE_TTS)
+    page = home(browser, "window.__srMode='speak';" + FAKE_SR, FAKE_TTS)
     page.wait_for_timeout(500)
     assert page.evaluate("window.__rec.length") == 0
     assert page.evaluate("window.__spoken.length") == 0
-
-
-def test_telugu_voice_input_and_playback(browser):
-    tts = "window.__voices=[{lang:'en-US',name:'E'},{lang:'te-IN',name:'Telugu'}];" + FAKE_TTS
-    page = page_with(browser, "window.__srMode='speak'; window.__phrase='శ్రీనివాస గురించి చెప్పండి';" + FAKE_SR, tts)
-    page.select_option("#ask-lang", "te")
-    page.check("#speak-answers")
-    page.click(".mic")
-    expect(page.locator(".msg.bot").last).to_contain_text("అనుభవం")
-    assert page.evaluate("window.__rec[0].lang") == "te-IN"
-    page.wait_for_function("window.__spoken.length > 0")
-    assert page.evaluate("window.__spoken[0].lang") == "te-IN"
-
-
-def test_telugu_without_telugu_voice_shows_text(browser):
-    page = page_with(browser, NO_SPEECH, FAKE_TTS)  # only an English voice installed
-    page.select_option("#ask-lang", "te")
-    page.check("#speak-answers")
-    page.fill("#ask-input", "శ్రీనివాస గురించి చెప్పండి")
-    page.press("#ask-input", "Enter")
-    expect(page.locator(".msg.bot").last).to_contain_text("అనుభవం")
-    expect(page.locator(".status-text")).to_contain_text("No Telugu voice")
-    assert page.evaluate("window.__spoken.length") == 0
-
-
-def test_telugu_recognition_unsupported(browser):
-    page = page_with(browser, "window.__srMode='unsupported-lang';" + FAKE_SR, FAKE_TTS)
-    page.select_option("#ask-lang", "te")
-    page.click(".mic")
-    expect(page.locator(".status-text")).to_contain_text("తెలుగు voice input isn't supported")
-
-
-def test_real_chrome_speech_api_denied_permission(browser):
-    """Real Chrome Web Speech API with no microphone permission granted."""
-    context = browser.new_context()
-    page = context.new_page()
-    page.goto(BASE + "index.html#ask")
-    expect(page.locator(".status-text")).to_contain_text("Ready")
-    if not page.evaluate("window.__portfolioAssistant.hasRecognition"):
-        pytest.skip("this Chrome build has no SpeechRecognition")
-    page.click(".mic")
-    expect(page.locator(".status")).to_have_class(re.compile("error"), timeout=10000)
-    print("real Chrome message:", page.locator(".status-text").inner_text())
-
-
-def test_transcripts_not_stored(browser):
-    page = page_with(browser, NO_SPEECH)
-    page.fill("#ask-input", "Tell me about Srinivasa")
-    page.press("#ask-input", "Enter")
-    expect(page.locator(".msg.bot")).to_have_count(1)
-    page.click("h1")  # may set the welcome's session flag; questions must still not be stored
-    assert page.evaluate("localStorage.length") == 0
-    stored = page.evaluate("JSON.stringify(Object.assign({}, sessionStorage))")
-    assert "Srinivasa" not in stored and "years" not in stored
-    assert set(page.evaluate("Object.keys(sessionStorage)")) <= {"portfolio.welcome.autoplayed", "portfolio.welcome.muted"}
-    assert page.evaluate("document.cookie") == ""
-    page.reload()
-    expect(page.locator(".msg")).to_have_count(0)
 
 
 def test_keyboard_navigation(browser):
@@ -316,8 +177,8 @@ def spoken(page):
 def test_navigation_is_compact(browser):
     page = home(browser, NO_SPEECH)
     labels = [a.inner_text() for a in page.locator("#site-nav a").all()]
-    assert labels == (["Experience", "Projects", "Architecture", "Resume", "Ask"] if HAS_RESUME
-                      else ["Experience", "Projects", "Architecture", "Ask"])
+    assert labels == (["Experience", "Projects", "Architecture", "Resume"] if HAS_RESUME
+                      else ["Experience", "Projects", "Architecture"])
 
 
 def test_hero_actions_and_outcomes(browser):
@@ -601,32 +462,6 @@ def test_tour_keyboard(browser):
     expect(page.locator("[data-tour-step]")).to_contain_text("2 of 4")
     page.keyboard.press("Escape")
     expect(page.locator("[data-tour]")).to_be_hidden()
-
-
-def test_typed_questions_work_with_microphone_blocked(browser):
-    page = page_with(browser, "window.__srMode='denied';" + FAKE_SR, NO_TTS)
-    page.click(".mic")
-    expect(page.locator(".status-text")).to_contain_text("Microphone permission was denied")
-    page.fill("#ask-input", "How does the AKS rollback work?")
-    page.press("#ask-input", "Enter")
-    expect(page.locator(".msg.bot").last).to_contain_text("helm rollback")
-
-
-def test_assistant_links_open_diagrams_and_pages(browser):
-    page = page_with(browser, NO_SPEECH)
-    page.click("[data-sample='How is the delivery pipeline designed?']")
-    bot = page.locator(".msg.bot").last
-    expect(bot).to_contain_text("Portfolio lab")
-    bot.locator("a", has_text="Delivery diagram").click()
-    expect(page.locator("#arch-delivery")).to_be_visible()
-    page.fill("#ask-input", "Can I view his resume?")
-    page.press("#ask-input", "Enter")
-    bot = page.locator(".msg.bot").last
-    if HAS_RESUME:
-        bot.locator("a", has_text="View resume").click()
-        expect(page).to_have_url(re.compile(r"resume\.html$"))
-    else:
-        expect(bot).to_contain_text("experience timeline")
 
 
 def test_mobile_layout(browser):
