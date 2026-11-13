@@ -5,6 +5,7 @@
 <div class="wrap resume-wrap">
   <p class="breadcrumb"><a href="{{ root }}index.html">Portfolio</a> / Resume</p>
   <h1 class="resume-page-title">Resume</h1>
+  {% if resume_docx %}<p class="resume-download"><a class="btn primary" href="{{ root }}{{ resume_docx }}" download data-resume-download>Download resume (DOCX)</a> <span class="muted">Final version, {{ resume_updated }}. Same file as on Naukri.</span></p>{% endif %}
   <div class="resume-viewer" data-resume-viewer>
     <iframe class="pdf-frame" src="{{ root }}{{ resume_pdf }}#toolbar=0&amp;navpanes=0&amp;view=FitH" title="Resume of {{ profile.name }} (PDF, {{ resume_pages | length }} pages)" loading="eager"></iframe>
     <div class="pdf-pages" aria-hidden="true">
