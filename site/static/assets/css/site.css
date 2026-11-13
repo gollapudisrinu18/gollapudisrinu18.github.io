@@ -543,3 +543,4 @@ body.agent-open .agent-fab, body.touring .agent-fab { display: none; }
   .agent-head { padding-top: .55rem; }
   .agent-opts .btn.small, .agent-opts label { min-height: 30px; }
 }
+.resume-download { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; margin: 0 0 1rem; }
