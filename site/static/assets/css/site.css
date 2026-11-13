@@ -530,3 +530,16 @@ body.agent-open .agent-fab, body.touring .agent-fab { display: none; }
 @media print { .agent, .agent-fab { display: none !important; } }
 @media (prefers-reduced-motion: reduce) { .agent-mic.on { animation: none; } }
 .agent > *:not(.agent-log) { flex-shrink: 0; }
+/* agent panel: keep the conversation readable on short screens */
+.agent-log { min-height: 180px; }
+.agent-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: .5rem; }
+.agent-chips .chip { flex: none; white-space: nowrap; }
+.agent-privacy summary { cursor: pointer; font-weight: 600; min-height: 28px; display: flex; align-items: center; }
+.agent-privacy p { margin: .3rem 0 0; }
+@media (max-height: 760px) and (min-width: 561px) {
+  .agent { top: 76px; bottom: 12px; max-height: none; overflow: hidden; }
+  .agent-log { min-height: 0; }
+  .agent-opts { gap: 0 .6rem; }
+  .agent-head { padding-top: .55rem; }
+  .agent-opts .btn.small, .agent-opts label { min-height: 30px; }
+}
