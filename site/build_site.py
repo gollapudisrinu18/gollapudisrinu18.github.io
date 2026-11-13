@@ -119,6 +119,10 @@ def links_for(cfg, project):
     }
 
 
+REMOTE = ("He is open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles "
+          "and can join immediately.")
+
+
 def contact_entry(resume, email):
     links = []
     if resume:
@@ -127,10 +131,10 @@ def contact_entry(resume, email):
         links.append({"label": "Email " + email, "href": "mailto:" + email})
     if resume:
         answer = ("His contact details are on his resume." + (f" You can also email him at {email}." if email else "")
-                  + " He is an immediate joiner and is looking for fully remote roles.")
+                  + " " + REMOTE)
     else:
         answer = ("Contact details aren't published on this site yet. You can open an issue on the GitHub repository. "
-                  "He is an immediate joiner and is looking for fully remote roles.")
+                  + REMOTE)
         links.append({"label": "GitHub repository", "href": "{repo_url}"})
     return {"id": "contact", "kind": "meta", "title": "How to contact",
             "keywords": ["contact", "email", "phone", "reach", "call him", "get in touch", "hire him"],
@@ -174,11 +178,13 @@ def build_kb(content, extra, projects, resume=None, email=""):
          "keywords": ["azure devops", "pipelines", "ci/cd", "cicd", "yaml", "release", "devops experience", "build and release",
                       "in production", "production work", "devops work"],
          "keywords_te": ["డెవాప్స్", "డెవ్‌ఆప్స్", "పైప్‌లైన్", "అనుభవం"],
-         "answer": ("Work experience: at MITIE (Teknip Technology) he created multi-stage Azure DevOps YAML pipelines with environment "
-                    "approvals, ACR image scanning and Helm deployments to AKS for 10+ applications, cutting release lead "
-                    "time from days to hours. At LSEG (Tech Mahindra, Technical Lead) he owned the Azure DevOps CI/CD "
-                    "platform for 20+ application modules on reusable YAML templates, cutting deployment effort by 50%+. "
-                    "At URUS (Pulse Data Labs) he managed AKS workloads deployed through Azure DevOps and GitHub Actions."),
+         "answer": ("Work experience: most recently, at Pulse Data Labs (client URUS, Feb 2026 – Sep 2026) he managed AKS workloads "
+                    "deployed through Azure DevOps and GitHub Actions pipelines and added SBOM generation, Cosign image signing "
+                    "and SonarQube checks to release pipelines. Before that, at Teknip Technology (client MITIE) he created "
+                    "multi-stage Azure DevOps YAML pipelines with environment approvals, ACR image scanning and Helm deployments "
+                    "to AKS for 10+ applications, cutting release lead time from days to hours. At LSEG (Tech Mahindra, "
+                    "Technical Lead) he owned the Azure DevOps CI/CD platform for 20+ application modules on reusable YAML "
+                    "templates, cutting deployment effort by 50%+."),
          "answer_te": te["azure-devops"],
          "links": [{"label": "Experience timeline", "href": "index.html#experience"}],
          "lab_note": {"text": ("Portfolio lab (synthetic, built to verify the pattern): the AKS Delivery Platform lab promotes one "
@@ -194,7 +200,7 @@ def build_kb(content, extra, projects, resume=None, email=""):
          "answer": ("Work experience: at Pulse Data Labs he served as L3 escalation in a 24x7 PagerDuty on-call rotation, troubleshooting "
                     "Kubernetes failures such as CrashLoopBackOff, OOMKilled pods, ingress and DNS issues. He defined SLIs, "
                     "SLOs and error budgets with application teams, wrote blameless postmortems and prepared disaster "
-                    "recovery plans against RTO and RPO targets. At MITIE he tuned alerting and reduced false-positive alerts by about 45%."),
+                    "recovery plans against RTO and RPO targets. Earlier, at Teknip Technology (client MITIE), he tuned alerting and reduced false-positive alerts by about 45%."),
          "answer_te": te["sre"],
          "links": [{"label": "Experience timeline", "href": "index.html#experience"}],
          "lab_note": {"text": ("Portfolio lab (simulated incident): the AKS Observability and SRE lab walks from a 14.4x "
@@ -217,7 +223,7 @@ def build_kb(content, extra, projects, resume=None, email=""):
         {"id": "availability", "kind": "career", "title": "Availability and remote work",
          "keywords": ["available", "availability", "remote", "notice period", "join", "joining", "relocate", "hire", "start"],
          "keywords_te": ["రిమోట్", "జాయిన్", "అందుబాటు"],
-         "answer": "He is an immediate joiner and is looking for fully remote roles only. He is based in Bangalore, India.",
+         "answer": REMOTE + " He is based in Bangalore, India.",
          "answer_te": te["availability"],
          "links": ([{"label": "View resume", "href": "resume.html"}] if resume else [])
                   + [{"label": "Experience", "href": "index.html#experience"}]},
@@ -336,6 +342,78 @@ def build_kb(content, extra, projects, resume=None, email=""):
             "samples": samples, "entries": entries}
 
 
+NODE = re.compile(r"\b([A-Za-z_][\w]*)\s*(?:\[\(|\(\[|\[\[|\{\{|\[|\(\(|\(|\{|>)\s*\"?([^\]\)\}\"]+?)\"?\s*(?:\)\]|\]\)|\]\]|\}\}|\]|\)\)|\)|\})")
+
+
+def diagram_components(source):
+    """Node labels from a Mermaid flowchart, in first-appearance order (plain text)."""
+    if not source.lstrip().startswith(("flowchart", "graph")):
+        parts = re.findall(r"participant \w+ as (.+)", source)
+        return [p.strip() for p in parts]
+    seen, out = set(), []
+    for _, label in NODE.findall(source):
+        text = re.sub(r"<br\s*/?>", " ", label).replace("(", "").replace(")", "").strip()
+        text = re.sub(r"\s+", " ", text)
+        if text and text.lower() not in seen and len(text) > 1:
+            seen.add(text.lower())
+            out.append(text)
+    return out
+
+
+def build_agent_data(cfg, content, projects, resume, arch):
+    """Grounding data for the Ask the Portfolio agent (served as data/agent.json)."""
+    p = content["profile"]
+    roles = []
+    if resume:
+        for sec in resume["sections"]:
+            for b in sec["blocks"]:
+                if b.get("type") == "role":
+                    org = [x.strip() for x in b["org"].split("|")]
+                    client = next((x.split(":", 1)[1].strip() for x in org if x.lower().startswith("client")), "")
+                    roles.append({"title": b["title"], "company": org[0], "location": org[1] if len(org) > 2 else "",
+                                  "client": client, "dates": b["dates"], "environment": b.get("env", ""),
+                                  "points": [i for g in b["groups"] for i in g["items"]],
+                                  "source": "resume"})
+    else:
+        roles = [{"title": e["title"], "company": e["company"], "client": e["client"], "dates": e["dates"],
+                  "points": e["points"], "environment": "", "location": "", "source": "content"} for e in content["experience"]]
+    arch_by_slug = {a["slug"]: a for a in arch}
+    out_projects = []
+    for pr in projects:
+        a = arch_by_slug.get(pr["slug"])
+        comps = []
+        for d in pr["diagrams"]:
+            comps.append({"title": d["title"], "components": diagram_components(d["source"])})
+        out_projects.append({
+            "slug": pr["slug"], "title": pr["title"], "short": pr["short"], "tier": pr["tier"],
+            "lead": bool(pr.get("lead")), "problem": pr["problem"], "environment": pr["environment"],
+            "architecture_summary": a["caption"] if a else "", "diagrams": comps, "stack": pr["stack"],
+            "built": pr["built"], "decisions": pr["decisions"], "failure": pr["failure"], "recovery": pr["recovery"],
+            "result": pr["result"], "result_scope": pr["result_scope"], "scope": pr["scope"],
+            "evidence_gaps": pr["evidence_gaps"], "demo_intro": pr["demo"]["intro"], "run": pr["run"],
+            "keywords": [pr["title_short"].lower()] + [k.lower() for k in pr["keywords"]],
+            "links": {"case": f"projects/{pr['slug']}.html", "architecture": f"projects/{pr['slug']}.html#architecture",
+                      "walkthrough": f"demos/{pr['slug']}.html", "demo": f"projects/{pr['slug']}.html#walkthrough",
+                      "source": pr["links"]["source"]},
+        })
+    return {
+        "version": 1,
+        "profile": {"name": p["name"], "headline": p["headline"], "remote_pref": p["remote_pref"],
+                    "availability": p["availability"], "location": p["location"], "summary": p["summary"],
+                    "email": ((cfg.get("contact") or {}).get("email") or ""), "education": content["education"],
+                    "most_recent": p["impact_source"]},
+        "roles": roles,
+        "skills": content["skills"],
+        "projects": out_projects,
+        "notes": {
+            "labs": ("The six projects are portfolio labs: original work with synthetic apps, data, logs and incidents. "
+                     "They contain no employer code or client details, and none has been run on Azure yet."),
+            "career": "Career facts come from his resume.",
+        },
+        "endpoint": cfg.get("agent_endpoint", ""),
+    }
+
+
 DEMO_MD = """# Demo: {title}
 
 **Format:** {format_line}
@@ -430,7 +508,8 @@ def main():
                 h.update(fh.read())
     env.globals["v"] = h.hexdigest()[:10]
     common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": kb["samples"],
-              "welcome": extra["welcome"], "resume": resume}
+              "welcome": extra["welcome"], "resume": resume,
+              "agent_endpoint": cfg.get("agent_endpoint", "")}
 
     def write(rel, template, **ctx):
         path = os.path.join(OUT, rel)
@@ -456,6 +535,9 @@ def main():
          "caption": "Metrics and traces feed a latency SLO with burn-rate alerts. A page leads to trace-led investigation, "
                     "a cache-fallback mitigation and a blameless postmortem."},
     ]
+    agent = build_agent_data(cfg, content, projects, resume, arch)
+    with open(os.path.join(OUT, "data", "agent.json"), "w", encoding="utf-8") as fh:
+        json.dump(agent, fh, ensure_ascii=False, indent=1)
     write("index.html", "index.html", content=content, lead=lead, arch=arch,
           others=[p for p in projects if p not in lead])
     for i, pr in enumerate(projects):

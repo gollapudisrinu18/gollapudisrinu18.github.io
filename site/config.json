@@ -1,11 +1,13 @@
 {
   "github_user": "gollapudisrinu18",
-  "repo": "my-profile",
+  "repo": "gollapudisrinu18.github.io",
   "branch": "main",
-  "pages_url": "https://gollapudisrinu18.github.io/my-profile/",
+  "pages_url": "https://gollapudisrinu18.github.io/",
   "site_title": "Srinivasa Rao Gollapudi · Azure DevOps & SRE Portfolio",
   "contact": {
     "email": "gollapudi.srinu18@gmail.com"
   },
-  "_contact_help": "email: public address from the approved resume (phone number deliberately not published). The View Resume page is built from site/src/resume.json."
+  "_contact_help": "email: public address from the approved resume (phone number deliberately not published). The View Resume page is built from site/src/resume.json.",
+  "agent_endpoint": "",
+  "_agent_help": "agent_endpoint: optional HTTPS URL of the serverless AI endpoint in serverless/ask-portfolio (for example a Cloudflare Worker). Leave empty to use the built-in grounded answer engine, which needs no keys. Never put an API key in this file."
 }
