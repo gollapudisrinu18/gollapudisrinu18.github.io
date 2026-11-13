@@ -91,3 +91,16 @@ The repository is committed locally. Pushing to GitHub, enabling Pages and check
 
 Not verifiable here: real speaker output and exact spoken length (the test browser has no voices).
 
+## One-link portfolio, latest role and HTML résumé (13 Nov 2026)
+
+| Check | Result |
+|---|---|
+| Employment history | `site/src/resume.json` compared line by line with `Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume.docx`: same roles, companies, clients, dates and bullets (only the phone number is left off the site on purpose) |
+| Source pages | 149 tracked files across the six labs, each with its own page under `source/`; Markdown links rewritten to on-site pages; MIT license on every page; secret scan (private keys, cloud keys, tokens, GUIDs) and exclusion list (`*.tfstate`, `.env`, `local.settings.json`, `backend.hcl`…) enforced at build time; no secrets or client data found |
+| Outside links | No `github.com` links in any public page; footer and case studies point to on-site source |
+| Latest Role card | Pulse Data Labs · Senior DevOps Engineer · Client: URUS · Feb 2026–Sep 2026, with AKS deployments, Terraform modules and L3 on-call from the résumé; Teknip results (10+ AKS apps, days → hours, ~45%) shown with Teknip in the timeline; card stacks below the intro on mobile |
+| Screenshots | Rollback output (AKS delivery lab, LOCAL) and burn-rate alert + span timings (SRE lab, LOCAL · SIMULATED), captured from the interactive walkthroughs; linked to case studies with descriptive alt text |
+| Résumé | HTML only; no iframe/embed, no download links, no `.pdf`/`.doc`/`.docx` in `_site`; résumé PDF and page images removed from the repo |
+| Voice | Real Chrome (user's machine, preview build): narration audible, played to completion in about 55–58 s and reset with "Walkthrough finished."; Stop, replay and three rapid clicks behaved correctly |
+| Tests | Browser 35/35 under `/my-profile/`; Node 23/23 |
+

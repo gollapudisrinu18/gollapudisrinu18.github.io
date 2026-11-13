@@ -23,13 +23,17 @@
         "text": "~45% fewer false-positive alerts"
       }
     ],
-    "latest_summary": "Ran AKS workloads shipped through Azure DevOps and GitHub Actions CI/CD pipelines, built reusable Terraform modules for Dev, QA and Production, and served as L3 escalation in a 24x7 SRE on-call rotation.",
-    "impact_source": "DevOps Engineer · Teknip Technology Pvt Ltd · Client: MITIE · May 2024 – Feb 2026",
-    "narration": "This is the portfolio of Srinivasa Rao Gollapudi, a Senior Azure DevOps Engineer and Site Reliability Engineer with more than 11 years in IT. His latest role was Senior DevOps Engineer at Pulse Data Labs, for the client URUS, from February to September 2026. There he ran AKS workloads, CI/CD pipelines and Terraform modules, and served as L3 escalation in a 24 by 7 on-call rotation. The two featured portfolio labs use synthetic apps and data. In the AKS Delivery Platform lab, a pipeline promotes one image from Dev to QA to Production. In a local run, release 1.1.0 failed its smoke test, and the deploy script rolled back to 1.0.0 automatically. In the AKS Observability and SRE Incident Lab, a simulated incident made checkout slow. A burn-rate alert paged the on-call engineer, tracing pointed to the slow inventory lookup, and a fallback brought latency back down. For the details, choose View Projects for the case studies, or View Resume for his full experience.",
+    "impact_source": "DevOps Engineer · Teknip Technology Pvt Ltd · Client: MITIE · May 2024–Feb 2026",
+    "narration": "This is the portfolio of Srinivasa Rao Gollapudi, a Senior Azure DevOps Engineer and Site Reliability Engineer with more than 11 years in IT. His latest role was Senior DevOps Engineer at Pulse Data Labs, for the client URUS, from February to September 2026. There he ran AKS deployments, built reusable Terraform modules, and handled L3 escalations in a 24 by 7 on-call rotation. The two featured portfolio labs use synthetic apps and data. In the AKS Delivery Platform lab, run locally, release 1.1.0 failed its smoke test, and the deploy script rolled back to 1.0.0 automatically. In the AKS Observability and SRE Incident Lab, a simulated slowdown hit checkout. A burn-rate alert paged the on-call engineer, traces pointed to the slow inventory lookup, and a fallback brought latency back down. For the details, choose View Projects or View Résumé.",
     "about": [
       "I build delivery platforms that teams can trust: one pipeline that tests, scans, promotes and rolls back on its own, running on infrastructure defined in code.",
       "On the reliability side I define SLOs with application teams, alert on error-budget burn instead of noise, and write postmortems that lead to fixes.",
       "This site collects six hands-on Azure labs I built to show that work end to end. They use synthetic apps, data and incidents, so every lab can be run and checked by anyone."
+    ],
+    "latest_highlights": [
+      "Ran AKS deployments for the URUS SaaS platform, with images in ACR and releases through Azure DevOps and GitHub Actions pipelines.",
+      "Built reusable Terraform modules for Dev, QA and Production and published them as self-service templates in Backstage.",
+      "Took L3 escalations in a 24x7 PagerDuty on-call rotation: crash-looping and OOMKilled pods, node pressure, ingress and DNS failures, Terraform drift."
     ]
   },
   "skills": [
@@ -133,7 +137,7 @@
       "title": "Senior DevOps Engineer",
       "company": "Pulse Data Labs",
       "client": "URUS",
-      "dates": "Feb 2026 – Sep 2026",
+      "dates": "Feb 2026–Sep 2026",
       "points": [
         "Managed AKS workloads with images in ACR, deployed through Azure DevOps and GitHub Actions pipelines.",
         "Governed access and configuration with Entra ID, Azure RBAC, Azure Policy and OPA/Gatekeeper.",
@@ -145,18 +149,35 @@
       "title": "DevOps Engineer",
       "company": "Teknip Technology Pvt Ltd",
       "client": "MITIE",
-      "dates": "May 2024 – Feb 2026",
+      "dates": "May 2024–Feb 2026",
       "points": [
         "Created multi-stage Azure DevOps YAML pipelines with environment approvals, ACR image scanning and Helm deployments to AKS for 10+ applications, cutting release lead time from days to hours.",
         "Built a hub-spoke VNet topology with Private Endpoints, Azure Firewall rules and NSGs; integrated Key Vault with AKS through the Secrets Store CSI driver and Workload ID.",
         "Set up centralized logging and tuned alerting, reducing false-positive alerts by ~45%."
+      ],
+      "results": [
+        {
+          "figure": "10+",
+          "label": "applications deployed to AKS",
+          "text": "10+ applications deployed to AKS"
+        },
+        {
+          "figure": "Days → hours",
+          "label": "release lead time",
+          "text": "Release lead time reduced from days to hours"
+        },
+        {
+          "figure": "~45%",
+          "label": "fewer false-positive alerts",
+          "text": "~45% fewer false-positive alerts"
+        }
       ]
     },
     {
       "title": "Technical Lead",
       "company": "Tech Mahindra",
       "client": "LSEG (London Stock Exchange Group)",
-      "dates": "Jul 2022 – Apr 2024",
+      "dates": "Jul 2022–Apr 2024",
       "points": [
         "Owned the Azure DevOps CI/CD platform for 20+ application modules on reusable YAML templates, cutting deployment effort by 50%+.",
         "Added secret scanning and dependency checks to release pipelines; hardened AKS clusters.",
@@ -167,7 +188,7 @@
       "title": "Senior System Administrator (Cloud Infrastructure)",
       "company": "Venus Universal Limited",
       "client": "United Health",
-      "dates": "Feb 2015 – Jun 2022",
+      "dates": "Feb 2015–Jun 2022",
       "points": [
         "Progressed from Linux and Windows Server administration to managing Azure compute, networking and storage.",
         "Supported on-premises to Azure migration, automated provisioning with Bash and Terraform, and set up monitoring with Azure Monitor and Nagios."
@@ -253,7 +274,14 @@
       "home_built": "Multi-stage Azure Pipelines that build one image in ACR and promote it Dev → QA → Prod on AKS with Helm, an approval gate, smoke tests and automatic rollback.",
       "result_scope": [
         "Local"
-      ]
+      ],
+      "shot": {
+        "src": "assets/img/lab-aks-rollback.webp",
+        "w": 1250,
+        "h": 772,
+        "alt": "Terminal output from the local AKS delivery lab: release 1.1.0 fails two smoke checks with HTTP 500, the deploy script rolls back to revision 1, and the repeat smoke test passes with ROLLBACK VERIFIED.",
+        "caption": "Release 1.1.0 fails its smoke test and is rolled back to 1.0.0."
+      }
     },
     {
       "slug": "aks-observability-sre-lab",
@@ -340,7 +368,14 @@
       "result_scope": [
         "Local",
         "Simulated"
-      ]
+      ],
+      "shot": {
+        "src": "assets/img/lab-sre-alert-trace.webp",
+        "w": 1609,
+        "h": 412,
+        "alt": "Terminal output from the simulated SRE incident: the checkout burn rate reaches 63.8x and crosses the 14.4x paging threshold, then slow-request spans show inventory.lookup taking about 820 ms of an 858 ms request.",
+        "caption": "The burn-rate alert fires, and span timings point to inventory.lookup."
+      }
     },
     {
       "slug": "azure-hub-spoke-terraform",

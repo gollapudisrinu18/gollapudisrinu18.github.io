@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{% if path %}{{ path }} · {% endif %}{{ p.title }} source · {{ profile.name }}{% endblock %}
+{% block description %}Source code and documentation for the {{ p.title }} portfolio lab.{% endblock %}
+{% block main %}
+<div class="wrap src">
+  <p class="breadcrumb"><a href="{{ root }}index.html#projects">Projects</a> / <a href="{{ root }}source/index.html">Source</a> / {% if path %}<a href="{{ root }}source/{{ p.slug }}/index.html">{{ p.dir }}</a>{% for part in path.split('/')[:-1] %} / {{ part }}{% endfor %} / <strong>{{ path.split('/')[-1] }}</strong>{% else %}<strong>{{ p.dir }}</strong>{% endif %}</p>
+  <header class="src-head">
+    <h1>{% if path %}{{ path.split('/')[-1] }}{% else %}{{ p.title }}{% endif %}</h1>
+    <p class="muted">{% if path %}{{ p.title }} · {{ lines }} line{{ 's' if lines != 1 }}{% else %}Source code and documentation · {{ total }} files · <span class="lab-tag">Portfolio lab</span> synthetic app and data{% endif %}</p>
+    <div class="case-links">
+      <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
+      <a class="btn small" href="{{ root }}projects/{{ p.slug }}.html#architecture">Architecture</a>
+      <a class="btn small" href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+    </div>
+  </header>
+  <div class="src-grid">
+    <nav class="src-tree" aria-label="Files in {{ p.dir }}">
+      <details class="src-tree-toggle" open><summary>Files</summary>
+        <p class="src-tree-root"><a href="{{ root }}source/{{ p.slug }}/index.html"{% if not path %} aria-current="page"{% endif %}>{{ p.dir }}/</a></p>
+        {{ tree_html | safe }}
+      </details>
+    </nav>
+    <div class="src-main">
+      {% if body %}<article class="md">{{ body | safe }}</article>{% endif %}
+      {% if path and code %}
+        {% if body %}<details class="src-raw"><summary>Markdown source</summary>{% endif %}
+        <div class="src-code" role="region" aria-label="Contents of {{ path }}" tabindex="0">{{ code | safe }}</div>
+        {% if body %}</details>{% endif %}
+      {% endif %}
+      <p class="src-license">MIT License · © 2026 Srinivasa Rao Gollapudi · <a href="{{ root }}source/LICENSE.html">License</a></p>
+    </div>
+  </div>
+</div>
+<script>
+  // On narrow screens start with the file list folded so the file itself comes first.
+  if (window.matchMedia("(max-width: 860px)").matches) document.querySelector(".src-tree-toggle").removeAttribute("open");
+</script>
+{% endblock %}

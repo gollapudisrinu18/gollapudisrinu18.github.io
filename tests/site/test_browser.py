@@ -175,7 +175,7 @@ def spoken(page):
 def test_navigation_is_compact(browser):
     page = home(browser, NO_SPEECH)
     labels = [a.inner_text() for a in page.locator("#site-nav a").all()]
-    assert labels == (["Experience", "Projects", "Architecture", "Resume"] if HAS_RESUME
+    assert labels == (["Experience", "Projects", "Architecture", "Résumé"] if HAS_RESUME
                       else ["Experience", "Projects", "Architecture"])
 
 
@@ -279,24 +279,20 @@ def test_resume_page(browser):
     page = home(browser, NO_SPEECH)
     page.click(".cta [data-cta=resume]")
     expect(page).to_have_url(re.compile(r"resume\.html$"))
-    expect(page.locator("#site-nav a[aria-current=page]")).to_have_text("Resume")
-    frame = page.locator("iframe.pdf-frame")
-    src = frame.get_attribute("src")
-    assert src.startswith("./assets/resume/") and ".pdf#toolbar=0" in src
-    assert (SITE / "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf").stat().st_size > 10000
-    imgs = page.locator(".pdf-pages img")
-    expect(imgs).to_have_count(3)
-    # the PDF itself (or its page images) is the only visible resume; no download button
-    assert page.locator("a[download], a[href$='.pdf'], a[href$='.docx']").count() == 0
-    assert "Download" not in page.locator("main").inner_text()
-    heads = [h.text_content() for h in page.locator("article.sr-only h3").all()]
-    assert heads[0].startswith("Senior DevOps Engineer") and len(heads) == 4
-    # phones: page images instead of the PDF frame
+    expect(page.locator("#site-nav a[aria-current=page]")).to_have_text("Résumé")
+    # A readable HTML résumé: no PDF viewer, no downloads, no PDF or Word file on the site.
+    assert page.locator("iframe, embed, object").count() == 0
+    assert page.locator("a[download], a[href$='.pdf'], a[href$='.docx'], a[href$='.doc']").count() == 0
+    assert "download" not in page.locator("main").inner_text().lower()
+    assert not [f for f in SITE.rglob("*") if f.suffix.lower() in (".pdf", ".doc", ".docx")]
+    expect(page.locator("#resume-name")).to_have_text("Srinivasa Rao Gollapudi")
+    heads = [h.inner_text() for h in page.locator(".resume-role-head h3").all()]
+    assert heads == ["Senior DevOps Engineer", "DevOps Engineer", "Technical Lead",
+                     "Senior System Administrator (Cloud Infrastructure)"], heads
+    assert "+91" not in page.locator("main").inner_text()          # phone number stays off the public site
     m = browser.new_page(viewport={"width": 390, "height": 844})
     m.goto(BASE + "resume.html")
-    expect(m.locator("iframe.pdf-frame")).to_be_hidden()
-    expect(m.locator(".pdf-pages img").first).to_be_visible()
-    m.wait_for_function("[...document.querySelectorAll('.pdf-pages img')].slice(0,1).every(i => i.complete && i.naturalWidth > 1000)")
+    expect(m.locator(".resume-role").first).to_be_visible()
     assert m.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
 
@@ -342,7 +338,7 @@ def test_hero_actions_and_outcomes(browser):
     for fact in ("11+ years in IT", "Immediate joiner", "Remote only", "Bangalore, India"):
         expect(hero.locator(".facts")).to_contain_text(fact)
     buttons = [" ".join(b.inner_text().split()) for b in hero.locator(".cta .btn").all()]
-    assert buttons == (["View Projects", "View Resume", "🔊 Listen to Portfolio"] if HAS_RESUME
+    assert buttons == (["View Projects", "View Résumé", "🔊 Listen to Portfolio"] if HAS_RESUME
                        else ["View Projects", "🔊 Listen to Portfolio"]), buttons
     # The old intro and tour controls are gone.
     for gone in ("[data-intro-play]", "[data-tour-start]", "[data-intro-transcript]", "[data-intro]", "[data-tour]",
@@ -351,43 +347,53 @@ def test_hero_actions_and_outcomes(browser):
     expect(page.locator("[data-listen-fallback]")).to_be_hidden()
     assert "Senior Azure DevOps Engineer" not in hero.locator(".lead").inner_text()
     assert page.locator("text=Download Resume").count() == 0
-    out = page.locator(".outcomes")
-    expect(out.locator(".latest-role")).to_have_text("Senior DevOps Engineer · Pulse Data Labs · Client: URUS · Feb 2026 – Sep 2026")
-    for t in ("AKS", "CI/CD", "Terraform", "on-call"):
-        expect(out.locator(".latest-summary")).to_contain_text(t)
-    expect(out.locator(".outcomes-source")).to_have_text("DevOps Engineer · Teknip Technology Pvt Ltd · Client: MITIE · May 2024 – Feb 2026")
-    for t in ("10+ applications deployed to AKS", "Release lead time reduced from days to hours", "~45% fewer false-positive alerts"):
-        expect(out).to_contain_text(t)
-    snap = page.locator(".outcomes ul").aria_snapshot()
-    assert snap.count("10+") == 1 and snap.count("45%") == 1, snap
+    card = page.locator(".outcomes.latest")
+    expect(card.locator(".outcomes-label")).to_have_text("Latest Role")
+    expect(card.locator(".latest-role")).to_have_text("Pulse Data Labs · Senior DevOps Engineer · Client: URUS · Feb 2026–Sep 2026")
+    pts = card.locator(".latest-points").inner_text()
+    for t in ("AKS deployments", "reusable Terraform modules", "L3 escalations"):
+        assert t in pts, t
+    # Teknip's results are not on the hero card; they sit with Teknip in the timeline.
+    for t in ("Teknip", "MITIE", "10+", "45%", "Days"):
+        assert t not in card.inner_text(), t
+    teknip = page.locator(".timeline > li").nth(1)
+    res = teknip.locator(".role-results")
+    for t in ("10+ applications deployed to AKS", "Days → hours release lead time", "~45% fewer false-positive alerts"):
+        expect(res).to_contain_text(t)
+    # Mobile: the card stacks below the intro and buttons.
+    m = home(browser, NO_SPEECH, viewport={"width": 390, "height": 844})
+    assert m.locator(".outcomes.latest").bounding_box()["y"] > m.locator(".hero .cta").bounding_box()["y"]
 
 
 def test_names_dates_and_attribution_consistent(browser):
     page = home(browser, NO_SPEECH)
     roles = page.locator(".timeline > li")
     expect(roles.nth(0).locator("h3")).to_have_text("Senior DevOps Engineer")
-    expect(roles.nth(0).locator(".dates")).to_have_text("Feb 2026 – Sep 2026")
+    expect(roles.nth(0).locator(".dates")).to_have_text("Feb 2026–Sep 2026")
     expect(roles.nth(0).locator(".org")).to_have_text("Pulse Data Labs · Client: URUS")
-    expect(roles.nth(1).locator(".dates")).to_have_text("May 2024 – Feb 2026")
+    expect(roles.nth(1).locator(".dates")).to_have_text("May 2024–Feb 2026")
     expect(roles.nth(1).locator(".org")).to_have_text("Teknip Technology Pvt Ltd · Client: MITIE")
     teknip, pulse = roles.nth(1).inner_text(), roles.nth(0).inner_text()
     assert "10+ applications" in teknip and "days to hours" in teknip and "~45%" in teknip
     assert "10+" not in pulse and "45%" not in pulse and "days to hours" not in pulse
+    assert roles.nth(1).locator(".role-results li").count() == 3
     text = narration(page)
     assert text.startswith(NARRATION_START)
     for t in ("Pulse Data Labs", "URUS", "February to September 2026", "AKS Delivery Platform lab", "smoke test",
-              "rolled back", "AKS Observability and SRE Incident Lab", "burn-rate alert", "tracing", "simulated",
-              "local run", "View Projects", "View Resume"):
+              "rolled back", "AKS Observability and SRE Incident Lab", "burn-rate alert", "traces", "simulated",
+              "run locally", "View Projects", "View Résumé"):
         assert t in text, t
     # Teknip's results are not credited to Pulse Data Labs in the narration.
     for t in ("Teknip", "45", "10+", "days to hours"):
         assert t not in text, t
-    assert 140 <= len(text.split()) <= 175   # about 45–60 seconds at a normal speaking rate
+    assert 115 <= len(text.split()) <= 150   # measured ~60 s for 164 words in Chrome; this keeps it within 45–60 s
     if HAS_RESUME:
         page.goto(BASE + "resume.html")
-        sr = page.locator("article.sr-only").text_content()
-        assert "Senior DevOps Engineer, Feb 2026 – Sep 2026" in sr and "Pulse Data Labs | Bangalore, India | Client: URUS" in sr
-        assert "DevOps Engineer, May 2024 – Feb 2026" in sr and "Teknip Technology Pvt Ltd | Bangalore, India | Client: MITIE" in sr
+        rs = page.locator(".resume-role")
+        expect(rs.nth(0).locator(".dates")).to_have_text("Feb 2026–Sep 2026")
+        expect(rs.nth(0).locator(".resume-sub")).to_have_text("Pulse Data Labs | Bangalore, India | Client: URUS")
+        expect(rs.nth(1).locator(".dates")).to_have_text("May 2024–Feb 2026")
+        expect(rs.nth(1).locator(".resume-sub")).to_have_text("Teknip Technology Pvt Ltd | Bangalore, India | Client: MITIE")
 
 
 def test_listen_nothing_plays_until_clicked(browser):
@@ -532,7 +538,64 @@ def test_hero_links_reach_projects_and_resume(browser):
         with page.expect_navigation():
             page.click("[data-cta='resume']")
         assert page.url.endswith("resume.html")
-        expect(page.locator(".resume-page-title")).to_have_text("Resume")
+        expect(page.locator("#resume-name")).to_have_text("Srinivasa Rao Gollapudi")
     for slug in ("aks-delivery-platform", "aks-observability-sre-lab"):
         assert page.goto(BASE + f"projects/{slug}.html").ok
         assert page.goto(BASE + f"demos/{slug}.html").ok
+
+
+# ---------------- one-link portfolio: source pages, no outside links ----------------
+def test_no_github_links_in_public_pages():
+    bad = []
+    for f in SITE.rglob("*.html"):
+        for ref in re.findall(r'href="([^"]+)"', f.read_text(encoding="utf-8")):
+            if "github.com" in ref and "github.io" not in ref:
+                bad.append(f"{f.relative_to(SITE)} -> {ref}")
+    assert not bad, bad[:10]
+
+
+def test_source_pages(browser):
+    page = browser.new_page()
+    page.goto(BASE + "source/index.html")
+    expect(page.locator(".src-list li")).to_have_count(6)
+    page.click("text=AKS Delivery Platform with Azure DevOps")
+    expect(page.locator(".md h2").first).to_contain_text("AKS Delivery Platform")
+    expect(page.locator("h1")).to_have_count(1)
+    page.click(".src-tree summary:text('scripts')")
+    page.click(".src-tree a:text('deploy_with_rollback.sh')")
+    expect(page).to_have_url(re.compile(r"source/aks-delivery-platform/scripts/deploy_with_rollback\.sh\.html$"))
+    expect(page.locator(".src-code")).to_contain_text("helm rollback")
+    expect(page.locator(".src-license")).to_contain_text("MIT License")
+    page.goto(BASE + "source/LICENSE.html")
+    expect(page.locator(".license-text")).to_contain_text("Permission is hereby granted")
+    # Case study and walkthrough link to the on-site source
+    page.goto(BASE + "projects/aks-observability-sre-lab.html")
+    page.click(".case-links >> text=Browse the source")
+    expect(page.locator("h1")).to_have_text("AKS Observability and SRE Incident Lab")
+    page.goto(BASE + "source/aks-observability-sre-lab/docs/postmortem.md.html")
+    expect(page.locator(".md")).to_contain_text("Postmortem")
+    # every tracked project file has a page, and nothing secret-looking is published
+    import subprocess
+    root = SITE.parent
+    files = subprocess.run(["git", "-C", str(root), "ls-files", "projects"], capture_output=True, text=True).stdout.split()
+    for f in files:
+        parts = f.split("/")
+        slug = {"01-aks-delivery-platform": "aks-delivery-platform", "03-aks-observability-sre-lab": "aks-observability-sre-lab"}.get(parts[1])
+        if slug:
+            assert (SITE / "source" / slug / ("/".join(parts[2:]) + ".html")).exists(), f
+    assert not [p for p in (SITE / "source").rglob("*") if re.search(r"\.(pem|key|tfstate)|local\.settings\.json\.html$", p.name)]
+
+
+def test_featured_lab_screenshots(browser):
+    page = home(browser, NO_SPEECH)
+    for slug, scope in (("aks-delivery-platform", ["Local"]), ("aks-observability-sre-lab", ["Local", "Simulated"])):
+        card = page.locator(f"[data-lead='{slug}']")
+        img = card.locator(".lab-shot img")
+        img.scroll_into_view_if_needed()
+        assert img.evaluate("el => el.complete && el.naturalWidth > 1000")
+        assert len(img.get_attribute("alt")) > 60
+        assert card.locator(".lab-shot a").get_attribute("href").endswith(f"projects/{slug}.html")
+        badges = [b.inner_text().strip().title() for b in card.locator(".lab-shot .scope-badge").all()]
+        assert badges == scope, badges
+        for b in card.locator(".lab-shot .scope-badge").all():
+            assert b.is_visible()

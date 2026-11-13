@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="{{ root }}assets/css/site.css?v={{ v }}">
+{% if page.startswith('source/') %}<link rel="stylesheet" href="{{ root }}assets/css/code.css?v={{ v }}">{% endif %}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b2545'/%3E%3Ctext x='16' y='21' font-size='13' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'%3ESG%3C/text%3E%3C/svg%3E">
 </head>
 <body data-root="{{ root }}" data-page="{{ page }}">
@@ -26,7 +27,7 @@
       <a href="{{ root }}index.html#experience" {% if nav == 'experience' %}aria-current="page"{% endif %}>Experience</a>
       <a href="{{ root }}index.html#projects" {% if nav == 'projects' %}aria-current="page"{% endif %}>Projects</a>
       <a href="{{ root }}index.html#architecture">Architecture</a>
-      {% if resume %}<a href="{{ root }}resume.html" {% if nav == 'resume' %}aria-current="page"{% endif %}>Resume</a>{% endif %}
+      {% if resume %}<a href="{{ root }}resume.html" {% if nav == 'resume' %}aria-current="page"{% endif %}>Résumé</a>{% endif %}
     </nav>
   </div>
 </header>
@@ -36,7 +37,7 @@
 <footer class="site-footer">
   <div class="wrap">
     <span>© Srinivasa Rao Gollapudi · Senior Azure DevOps Engineer | SRE · Projects are portfolio labs with synthetic data.</span>
-    <span><a href="{{ cfg.repo_url }}">Source code on GitHub</a></span>
+    <span><a href="{{ root }}source/index.html">Source code</a> · <a href="{{ root }}source/LICENSE.html">MIT License</a></span>
   </div>
 </footer>
 <script src="{{ root }}assets/js/speech.js?v={{ v }}" defer></script>
