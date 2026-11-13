@@ -211,8 +211,8 @@
     function answerRemote(q) {
       state.focus = null;
       var text = prof.remote_pref + " " + (/\b(on.?site|office|hybrid|relocat)\b/.test(q)
-        ? "He is looking for remote-only roles, so on-site, hybrid or relocation roles are not what he's looking for. "
-        : "") + "He is an immediate joiner, based in " + prof.location + ".";
+        ? "He is looking for fully remote roles only, so on-site, hybrid or relocation roles are not what he's looking for. "
+        : "") + "He is an immediate joiner, currently not working, and based in " + prof.location + ".";
       return finish({ kind: "career", title: "Availability", parts: [{ heading: "Availability", text: text }],
         links: [{ label: "Contact", href: "index.html#contact" }, { label: "View resume", href: "resume.html" }] },
         ["How can I contact him?", "What did he do at Pulse Data Labs?", "Explain the AKS Delivery Platform project"]);

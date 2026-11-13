@@ -129,7 +129,7 @@
     { key: "projects", title: "Explore",
       say: "That's the tour. These are portfolio labs with case studies, recorded demos and interactive walkthroughs. " +
            "Open a project, view the resume, or press Ask the Portfolio to ask a question by voice or text. " +
-           "He is open to remote-only Senior Azure DevOps Engineer and SRE roles." }
+           "He is open to fully remote Azure DevOps, SRE and Azure Infrastructure Engineer roles only." }
   ];
 
   function renderNarr() {
