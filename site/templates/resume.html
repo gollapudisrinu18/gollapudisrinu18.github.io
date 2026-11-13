@@ -5,11 +5,10 @@
 <div class="wrap resume-wrap">
   <p class="breadcrumb"><a href="{{ root }}index.html">Portfolio</a> / Resume</p>
   <h1 class="resume-page-title">Resume</h1>
-  {% if resume_docx %}<p class="resume-download"><a class="btn primary" href="{{ root }}{{ resume_docx }}" download data-resume-download>Download resume (DOCX)</a> <span class="muted">Final version, {{ resume_updated }}. Same file as on Naukri.</span></p>{% endif %}
-  <div class="resume-viewer" data-resume-viewer>
-    <iframe class="pdf-frame" src="{{ root }}{{ resume_pdf }}#toolbar=0&amp;navpanes=0&amp;view=FitH" title="Resume of {{ profile.name }} (PDF, {{ resume_pages | length }} pages)" loading="eager"></iframe>
+  {# View-only: page images, no PDF viewer (it has its own save button) and no download link. #}
+  <div class="resume-viewer no-pdf" data-resume-viewer oncontextmenu="return false">
     <div class="pdf-pages" aria-hidden="true">
-      {% for img in resume_pages %}<img src="{{ root }}{{ img }}" alt="" width="1275" height="1650" loading="{{ 'eager' if loop.first else 'lazy' }}">{% endfor %}
+      {% for img in resume_pages %}<img src="{{ root }}{{ img }}" alt="" width="1275" height="1650" draggable="false" loading="{{ 'eager' if loop.first else 'lazy' }}">{% endfor %}
     </div>
   </div>
   {# Text of the same resume for screen readers; visually the page shows only the PDF. #}
@@ -32,8 +31,4 @@
   </article>
   <p class="resume-back"><a class="btn" href="{{ root }}index.html#projects">View the six case studies</a> <button class="btn ghost" type="button" data-agent-open aria-controls="ask" aria-expanded="false">Ask the Portfolio</button></p>
 </div>
-<script>
-  // Browsers without a built-in PDF viewer (most phones) get the page images instead.
-  if (navigator.pdfViewerEnabled === false) document.querySelector("[data-resume-viewer]").classList.add("no-pdf");
-</script>
 {% endblock %}
