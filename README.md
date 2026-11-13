@@ -1,10 +1,12 @@
 # Srinivasa Rao Gollapudi · Azure DevOps & SRE Portfolio
 
-**Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)** · 11+ years in IT · Immediate joiner · Bangalore, India
+**Senior Azure DevOps Engineer | Site Reliability Engineer (SRE) | Azure Infrastructure Engineer** · 11+ years in IT · Immediate joiner · Currently not working · Bangalore, India
 
-**Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles.**
+**Open to fully remote Senior Azure DevOps Engineer, Site Reliability Engineer (SRE) and Azure Infrastructure Engineer roles only.**
 
 **Portfolio:** https://gollapudisrinu18.github.io/
+
+**Resume:** [view online](https://gollapudisrinu18.github.io/resume.html) · [download the final DOCX](https://gollapudisrinu18.github.io/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx) (`site/static/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx`)
 
 That one link covers everything: professional experience, skills, the architecture overview, six case studies with diagrams, recorded demos and interactive walkthroughs, a guided portfolio tour, and the *Ask the Portfolio* voice agent. The old address (`/my-profile/`) forwards here. This repository holds the source code for the six labs and the website.
 
@@ -96,9 +98,11 @@ docs/VERIFICATION.md                 what was checked, and what still needs Azur
 
 ## Update the resume
 
-1. Put the approved resume PDF at `site/static/assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf`.
-2. Regenerate the page images: `pdftoppm -png -r 150 <pdf> site/static/assets/resume/resume-page`, then convert to WebP (or keep PNG and update the names).
-3. Update `site/src/resume.json` if the wording changed, then run `python site/build_site.py`.
+The master resume is `site/static/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx`. The same file is uploaded to Naukri and offered as the download on the portfolio.
+
+1. Replace that DOCX with the new final version (keep the file name).
+2. Export it to PDF as `site/static/assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf` and regenerate the page images: `pdftoppm -png -r 150 <pdf> resume-page`, then convert to WebP.
+3. Update `site/src/resume.json` to match, then run `python site/build_site.py`.
 
 ## Import the issue backlogs
 
