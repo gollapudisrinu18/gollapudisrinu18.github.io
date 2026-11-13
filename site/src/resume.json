@@ -99,7 +99,7 @@
         {
           "type": "role",
           "title": "Senior DevOps Engineer",
-          "dates": "Feb 2026 – Sep 2026",
+          "dates": "Feb 2026–Sep 2026",
           "org": "Pulse Data Labs | Bangalore, India | Client: URUS",
           "env": "AKS, ACR, Azure DevOps, GitHub Actions, Terraform, Entra ID, Azure Policy, Azure RBAC, OPA/Gatekeeper, OpenTelemetry, PagerDuty, Backstage",
           "groups": [
@@ -121,7 +121,7 @@
         {
           "type": "role",
           "title": "DevOps Engineer",
-          "dates": "May 2024 – Feb 2026",
+          "dates": "May 2024–Feb 2026",
           "org": "Teknip Technology Pvt Ltd | Bangalore, India | Client: MITIE",
           "env": "Azure DevOps, AKS, ACR, Helm, Terraform, App Service, Azure Functions, Application Gateway (WAF), Front Door, Key Vault, Entra ID, Azure Monitor, Log Analytics, Istio, Datadog, Ansible",
           "groups": [
@@ -157,7 +157,7 @@
         {
           "type": "role",
           "title": "Technical Lead",
-          "dates": "Jul 2022 – Apr 2024",
+          "dates": "Jul 2022–Apr 2024",
           "org": "Tech Mahindra | Hyderabad, India | Client: LSEG (London Stock Exchange Group)",
           "env": "Azure DevOps (Azure Pipelines, YAML templates), AKS, Azure Monitor, GitHub Advanced Security, Dependabot, Jenkins, GitHub Actions, Python, PowerShell",
           "groups": [
@@ -179,7 +179,7 @@
         {
           "type": "role",
           "title": "Senior System Administrator (Cloud Infrastructure)",
-          "dates": "Feb 2015 – Jun 2022",
+          "dates": "Feb 2015–Jun 2022",
           "org": "Venus Universal Limited | Bangalore, India | Client: United Health",
           "env": "Linux, Windows Server, Microsoft Azure, Terraform, Bash/Shell, Azure Monitor, Nagios, NGINX, Apache",
           "groups": [

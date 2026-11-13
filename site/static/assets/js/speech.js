@@ -1,4 +1,4 @@
-/* Shared text-to-speech for the welcome, the portfolio tour and Ask My Portfolio.
+/* Shared text-to-speech for the "Listen to Portfolio" walkthrough on the home page.
  *
  * Browser speech can fail in several ways; each is handled here so pages only see
  * a friendly reason ("blocked", "no-voice", "failed", "unsupported"):
@@ -53,7 +53,8 @@
   function hasVoice(lang) { return !!voiceFor(lang); }
 
   function sentences(text) {
-    var parts = String(text).match(/[^.!?。]+[.!?。]*\s*/g) || [String(text)];
+    // Break only where punctuation is followed by a space, so "1.1.0" stays in one piece.
+    var parts = String(text).replace(/([.!?。])\s+/g, "$1\u0000").split("\u0000");
     var out = [];
     parts.forEach(function (p) {
       p = p.trim();

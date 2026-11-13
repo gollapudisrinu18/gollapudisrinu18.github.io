@@ -11,6 +11,7 @@
     <div class="case-links">
       <a class="btn primary" href="#walkthrough">{{ 'Watch the recorded demo' if p.video else 'Open the walkthrough' }}</a>
       <a class="btn" href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+      <a class="btn" href="{{ root }}{{ p.links.source }}">Browse the source</a>
     </div>
   </header>
   <div class="case-grid">
@@ -74,10 +75,9 @@
       <section id="evidence" aria-labelledby="ev-h">
         <h2 id="ev-h">Scope and evidence</h2>
         <p>{{ p.evidence_gaps }}</p>
-        <pre class="term"><code>git clone {{ cfg.repo_url }}.git
-cd {{ cfg.repo }}/projects/{{ p.dir }}
-{{ p.run }}</code></pre>
-        <p class="source-links">Source on GitHub: <a href="{{ p.links.source }}">Code</a> <a href="{{ p.links.readme }}">README and setup</a> <a href="{{ p.links.architecture }}">Architecture doc</a> <a href="{{ p.links.issues_doc }}">Issue backlog</a>{% if p.links.postmortem %} <a href="{{ p.links.postmortem }}">Postmortem</a>{% endif %}</p>
+        <p class="source-links">Source on this site: <a href="{{ root }}{{ p.links.source }}">Code</a> <a href="{{ root }}{{ p.links.readme }}">README and setup</a> <a href="{{ root }}{{ p.links.architecture }}">Architecture doc</a> <a href="{{ root }}{{ p.links.issues_doc }}">Issue backlog</a>{% if p.links.postmortem %} <a href="{{ root }}{{ p.links.postmortem }}">Postmortem</a>{% endif %}</p>
+        <p class="muted">To run it yourself, from <code>projects/{{ p.dir }}</code>:</p>
+        <pre class="term"><code>{{ p.run }}</code></pre>
       </section>
       <nav class="pager" aria-label="More case studies">
         {% if prev %}<a href="{{ root }}projects/{{ prev.slug }}.html"><span>Previous</span>{{ prev.title }}</a>{% else %}<span></span>{% endif %}

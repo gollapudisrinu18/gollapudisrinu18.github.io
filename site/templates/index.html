@@ -15,31 +15,24 @@
       <div class="cta">
         <div class="cta-primary">
           <a class="btn primary" href="#projects" data-cta="projects">View Projects</a>
-          {% if resume %}<a class="btn primary" href="{{ root }}resume.html" data-cta="resume">View Resume</a>{% endif %}
-        </div>
-        <div class="cta-secondary" role="group" aria-label="Audio intro and guided tour">
-          <button class="btn" type="button" data-intro-play aria-pressed="false" aria-controls="intro-panel">▶ Play intro</button>
-          <button class="btn" type="button" data-tour-start data-cta="tour">Start Portfolio Tour</button>
-          <button class="btn ghost" type="button" data-intro-transcript aria-expanded="false" aria-controls="intro-panel">Intro transcript</button>
+          {% if resume %}<a class="btn primary" href="{{ root }}resume.html" data-cta="resume">View Résumé</a>{% endif %}
+          <button class="btn listen" type="button" data-listen><span class="listen-icon" aria-hidden="true">🔊</span> <span data-listen-label>Listen to Portfolio</span></button>
         </div>
       </div>
-      <div class="intro-panel" id="intro-panel" data-intro hidden>
-        <p class="intro-label">Intro transcript</p>
-        <p class="intro-text" data-intro-text>{{ welcome }}</p>
-        <div class="intro-controls">
-          <button type="button" class="btn small" data-intro-toggle>Play</button>
-          <button type="button" class="btn small" data-intro-stop disabled>Stop</button>
-          <span class="intro-status" role="status" aria-live="polite" data-intro-status></span>
-        </div>
+      <p class="listen-status" role="status" aria-live="polite" data-listen-status></p>
+      <div class="listen-text" data-listen-fallback hidden>
+        <p class="listen-text-label">Portfolio narration</p>
+        <p data-listen-text>{{ profile.narration }}</p>
       </div>
     </div>
-    <aside class="outcomes" aria-labelledby="outcomes-h">
-      <h2 class="outcomes-label" id="outcomes-h">Professional experience</h2>
-      <p class="outcomes-source">{{ profile.impact_source }}</p>
-      <ul>
-        {% for item in profile.impact %}<li><span class="sr-only">{{ item.text }}</span><strong aria-hidden="true">{{ item.figure }}</strong><span aria-hidden="true">{{ item.label }}</span></li>{% endfor %}
+    {% set latest = content.experience[0] %}
+    <aside class="outcomes latest" aria-labelledby="outcomes-h">
+      <h2 class="outcomes-label" id="outcomes-h">Latest Role</h2>
+      <p class="latest-role"><strong>{{ latest.company }}</strong> · {{ latest.title }} · Client: {{ latest.client }} · <span class="nowrap">{{ latest.dates }}</span></p>
+      <ul class="latest-points">
+        {% for h in profile.latest_highlights %}<li>{{ h }}</li>{% endfor %}
       </ul>
-      <p class="outcomes-note">Employer outcomes from the resume. Portfolio lab results are labelled separately below.</p>
+      <a class="latest-more" href="#experience">Full experience timeline</a>
     </aside>
   </div>
 </section>
@@ -54,6 +47,12 @@
       {% for p in lead %}
       <article class="project-feature" data-lead="{{ p.slug }}">
         <h3><a href="{{ root }}projects/{{ p.slug }}.html">{{ p.title }}</a></h3>
+        {% if p.shot %}<figure class="lab-shot">
+          <a href="{{ root }}projects/{{ p.slug }}.html" aria-label="{{ p.title }} case study">
+            <img src="{{ root }}{{ p.shot.src }}" alt="{{ p.shot.alt }}" width="{{ p.shot.w }}" height="{{ p.shot.h }}" loading="lazy" decoding="async">
+          </a>
+          <figcaption>{% for sc in p.result_scope %}<span class="scope-badge s-{{ sc | lower }}">{{ sc }}</span>{% endfor %} {{ p.shot.caption }}</figcaption>
+        </figure>{% endif %}
         <dl class="feature-facts">
           <div><dt>Problem</dt><dd>{{ p.home_problem }}</dd></div>
           <div><dt>What I built</dt><dd>{{ p.home_built }}</dd></div>
@@ -63,6 +62,7 @@
           <a class="btn small primary" href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
           <a class="btn small" href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
           <a class="btn small" href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+          <a class="btn small" href="{{ root }}{{ p.links.source }}">Source</a>
         </div>
       </article>
       {% endfor %}
@@ -79,6 +79,7 @@
           <a href="{{ root }}projects/{{ p.slug }}.html">Case study</a>
           <a href="{{ root }}projects/{{ p.slug }}.html#walkthrough">Recorded demo</a>
           <a href="{{ root }}demos/{{ p.slug }}.html">Interactive walkthrough</a>
+          <a href="{{ root }}{{ p.links.source }}">Source</a>
         </div>
       </li>
       {% endfor %}
@@ -118,6 +119,7 @@
       <li>
         <div class="role-head"><h3>{{ e.title }}</h3><span class="dates">{{ e.dates }}</span></div>
         <p class="org">{{ e.company }} · Client: {{ e.client }}</p>
+        {% if e.results %}<ul class="role-results" aria-label="Results at {{ e.company }}">{% for r in e.results %}<li><strong>{{ r.figure }}</strong> {{ r.label }}</li>{% endfor %}</ul>{% endif %}
         <ul>{% for pt in e.points %}<li>{{ pt }}</li>{% endfor %}</ul>
       </li>
       {% endfor %}
@@ -126,25 +128,11 @@
     <dl class="skills">
       {% for g in content.skills %}<div><dt>{{ g.group }}</dt><dd>{{ g['items'] | join(', ') }}</dd></div>{% endfor %}
     </dl>
-    <p class="muted">Education: {{ content.education }}.{% if resume %} <a href="{{ root }}resume.html">View the full resume</a>.{% endif %}</p>
+    <p class="muted">Education: {{ content.education }}.{% if resume %} <a href="{{ root }}resume.html">View the full résumé</a>.{% endif %}</p>
   </div>
 </section>
 
-<div class="tour-bar" data-tour hidden role="region" aria-label="Portfolio tour">
-  <div class="wrap tour-inner">
-    <p class="tour-step" data-tour-step></p>
-    <p class="tour-caption" data-tour-caption aria-live="polite"></p>
-    <p class="tour-note" data-tour-note role="status" aria-live="polite"></p>
-    <div class="tour-controls">
-      <button type="button" class="btn small" data-tour-back>Back</button>
-      <button type="button" class="btn small primary" data-tour-next>Next</button>
-      <button type="button" class="btn small" data-tour-play aria-pressed="false">Play narration</button>
-      <button type="button" class="btn small ghost" data-mute aria-pressed="false">Mute</button>
-      <button type="button" class="btn small ghost" data-tour-stop>Stop tour</button>
-    </div>
-  </div>
-</div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ root }}assets/js/tour.js?v={{ v }}" defer></script>
+<script src="{{ root }}assets/js/listen.js?v={{ v }}" defer></script>
 {% endblock %}

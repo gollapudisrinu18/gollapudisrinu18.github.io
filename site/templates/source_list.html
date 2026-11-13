@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Source code' if items else 'License' }} · {{ profile.name }}{% endblock %}
+{% block main %}
+<div class="wrap src">
+  <p class="breadcrumb"><a href="{{ root }}index.html#projects">Projects</a> / {% if items %}<strong>Source</strong>{% else %}<a href="{{ root }}source/index.html">Source</a> / <strong>License</strong>{% endif %}</p>
+  {% if items %}
+  <header class="src-head">
+    <h1>Source code</h1>
+    <p class="muted">The code and documentation for all six portfolio labs, readable here on the site. They use synthetic applications, data and incidents; no employer code, client details or credentials are included.</p>
+  </header>
+  <ul class="src-list">
+    {% for it in items %}<li>
+      <a href="{{ root }}source/{{ it.p.slug }}/index.html"><strong>{{ it.p.title }}</strong></a>
+      <span class="muted">{{ it.count }} files · {{ it.p.stack[:4] | join(' · ') }}</span>
+      <span class="row-links"><a href="{{ root }}projects/{{ it.p.slug }}.html">Case study</a> <a href="{{ root }}demos/{{ it.p.slug }}.html">Interactive walkthrough</a></span>
+    </li>{% endfor %}
+  </ul>
+  <p class="src-license">MIT License · © 2026 Srinivasa Rao Gollapudi · <a href="{{ root }}source/LICENSE.html">License</a></p>
+  {% else %}
+  <header class="src-head"><h1>License</h1><p class="muted">Applies to the portfolio labs and the website source.</p></header>
+  <pre class="term license-text">{{ license_text }}</pre>
+  {% endif %}
+</div>
+{% endblock %}

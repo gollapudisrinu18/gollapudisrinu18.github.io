@@ -28,6 +28,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import diagrams  # noqa: E402
+import source_pages  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -102,18 +103,15 @@ def colorize(text):
 
 
 def links_for(cfg, project):
-    gh = f"https://github.com/{cfg['github_user']}/{cfg['repo']}"
-    tree = f"{gh}/tree/{cfg['branch']}/projects/{project['dir']}"
-    blob = f"{gh}/blob/{cfg['branch']}/projects/{project['dir']}"
-    query = f'is:issue "[{project["title_short"]}]"'
+    """Links to the project's source and docs, browsable on this site (source/<slug>/)."""
+    base = f"source/{project['slug']}/"
+    has_pm = os.path.exists(os.path.join(ROOT, "projects", project["dir"], "docs", "postmortem.md"))
     return {
-        "source": tree,
-        "architecture": f"{blob}/docs/architecture.md",
-        "issues_doc": f"{blob}/docs/issues.md",
-        "postmortem": f"{blob}/docs/postmortem.md" if os.path.exists(
-            os.path.join(ROOT, "projects", project["dir"], "docs", "postmortem.md")) else None,
-        "issues": f"{gh}/issues?q=" + query.replace(" ", "+").replace('"', "%22"),
-        "readme": f"{blob}/README.md",
+        "source": base + "index.html",
+        "architecture": base + "docs/architecture.md.html",
+        "issues_doc": base + "docs/issues.md.html",
+        "postmortem": base + "docs/postmortem.md.html" if has_pm else None,
+        "readme": base + "README.md.html",
         "demo_page": f"demos/{project['slug']}.html",
         "case": f"projects/{project['slug']}.html",
     }
@@ -463,12 +461,12 @@ def main():
               prev=projects[i - 1] if i else None, next=projects[i + 1] if i + 1 < len(projects) else None)
         write(f"demos/{pr['slug']}.html", "demo.html", p=pr, nav="projects")
     if resume:
-        rdir = os.path.join(STATIC, "assets", "resume")
-        pdf = "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf"
-        pages = sorted(f"assets/resume/{f}" for f in os.listdir(rdir) if f.startswith("resume-page-"))
-        if not os.path.exists(os.path.join(STATIC, pdf)) or not pages:
-            sys.exit("resume.json exists but the resume PDF or its page images are missing in site/static/assets/resume")
-        write("resume.html", "resume.html", nav="resume", resume_pdf=pdf, resume_pages=pages)
+        # View-only HTML resume. No PDF or Word file is published.
+        write("resume.html", "resume.html", nav="resume")
+    with open(os.path.join(ROOT, "LICENSE"), encoding="utf-8") as fh:
+        license_text = fh.read()
+    n_src = source_pages.build(ROOT, projects, write, license_text)
+    print(f"Source pages: {n_src} files")
     write("404.html", "404.html")
     with open(os.path.join(OUT, ".nojekyll"), "w") as fh:
         fh.write("")
