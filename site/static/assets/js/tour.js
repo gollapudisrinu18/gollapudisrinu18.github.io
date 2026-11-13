@@ -128,7 +128,8 @@
            "Traces point to the slow dependency, a cache fallback mitigates it, and a blameless postmortem records what to fix." },
     { key: "projects", title: "Explore",
       say: "That's the tour. These are portfolio labs with case studies, recorded demos and interactive walkthroughs. " +
-           "Open a project or view the resume." }
+           "Open a project, view the resume, or press Ask the Portfolio to ask a question by voice or text. " +
+           "He is open to remote-only Senior Azure DevOps Engineer and SRE roles." }
   ];
 
   function renderNarr() {
