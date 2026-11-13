@@ -122,7 +122,8 @@ def test_diagrams_render_in_browser(browser):
 
 # ---------------- portfolio redesign: tour, architecture, case studies ----------------
 WELCOME = ("Welcome to Srinivasa\u2019s portfolio. Explore his Azure DevOps and SRE experience, view his resume, "
-           "or take a short tour of the project architectures.")
+           "take a short tour of the project architectures, or ask the portfolio a question. "
+           "He is open to remote-only Senior Azure DevOps Engineer and SRE roles.")
 HAS_RESUME = (SITE / "resume.html").exists()
 SLUGS = ["aks-delivery-platform", "aks-observability-sre-lab", "azure-hub-spoke-terraform",
          "azure-devsecops-supply-chain", "azure-functions-event-processing", "azure-dr-restore-drill"]
@@ -177,8 +178,8 @@ def spoken(page):
 def test_navigation_is_compact(browser):
     page = home(browser, NO_SPEECH)
     labels = [a.inner_text() for a in page.locator("#site-nav a").all()]
-    assert labels == (["Experience", "Projects", "Architecture", "Resume"] if HAS_RESUME
-                      else ["Experience", "Projects", "Architecture"])
+    assert labels == (["Experience", "Projects", "Architecture", "Resume", "Contact", "Ask the Portfolio"] if HAS_RESUME
+                      else ["Experience", "Projects", "Architecture", "Contact", "Ask the Portfolio"])
 
 
 def test_hero_actions_and_outcomes(browser):
@@ -198,11 +199,22 @@ def test_hero_actions_and_outcomes(browser):
     assert page.locator("a[href*='linkedin']").count() == 0
     out = page.locator(".outcomes")
     expect(out).to_contain_text("Professional experience")
-    expect(out).to_contain_text("MITIE")
-    for t in ("10+ applications deployed to AKS", "Release lead time reduced from days to hours", "~45% fewer false-positive alerts"):
+    # The card shows the most recent (previous) employer from the resume: Pulse Data Labs, client URUS.
+    expect(out).to_contain_text("Pulse Data Labs (client: URUS), Feb 2026 – Sep 2026")
+    assert "Teknip" not in out.inner_text() and "MITIE client" not in out.inner_text()
+    for t in ("L3 escalation in a 24x7 PagerDuty on-call rotation", "Defined SLIs, SLOs and error budgets with application teams"):
         expect(out).to_contain_text(t)
-    snap = page.locator(".outcomes ul").aria_snapshot()
-    assert snap.count("10+") == 1 and snap.count("45%") == 1, snap
+    # No figures are attributed to Pulse Data Labs: the resume has none for that role.
+    for metric in ("10+", "45%", "Days → hours"):
+        assert metric not in out.inner_text()
+    # Remote-only preference is visible in the hero and in the contact section, worded the same.
+    pref = "Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles."
+    expect(hero.locator("[data-remote-pref]")).to_have_text(pref)
+    expect(page.locator("#contact [data-remote-pref]")).to_have_text(pref)
+    # Experience section lists Pulse Data Labs first, with the MITIE metrics staying on Teknip Technology.
+    orgs = [o.inner_text() for o in page.locator(".timeline .org").all()]
+    assert orgs[0] == "Pulse Data Labs · Client: URUS", orgs
+    assert orgs[1].startswith("Teknip Technology"), orgs
 
 
 def test_buttons_have_visible_focus(browser):
@@ -524,3 +536,143 @@ def test_phone_diagrams_are_readable(browser):
         ids = page.evaluate(f"[...document.querySelectorAll('#arch-{key} .arch-narrow [marker-end]')].map(e => e.getAttribute('marker-end'))")
         assert ids and all(i.startswith(f"url(#{key}-m-") for i in ids)
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+
+
+# ---------------- Ask the Portfolio voice agent ----------------
+PREF = "Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles."
+
+
+def open_page(browser, rel, *scripts, **ctx):
+    context = browser.new_context(**ctx)
+    for sc in scripts:
+        context.add_init_script(sc)
+    page = context.new_page()
+    page.goto(BASE + rel)
+    return page
+
+
+def agent_ask(page, q):
+    expect(page.locator(".agent-log .msg.bot").first).to_be_visible()  # greeting loaded
+    n = page.locator(".agent-log .msg.bot").count()
+    page.fill("#agent-input", q)
+    page.press("#agent-input", "Enter")
+    expect(page.locator(".agent-log .msg.bot")).to_have_count(n + 1)
+    return page.locator(".agent-log .msg.bot").last
+
+
+@pytest.mark.parametrize("rel", ["index.html", "projects/aks-delivery-platform.html", "demos/azure-dr-restore-drill.html"]
+                         + (["resume.html"] if HAS_RESUME else []))
+def test_agent_available_on_every_page(browser, rel):
+    page = open_page(browser, rel, NO_SPEECH)
+    fab = page.locator(".agent-fab")
+    expect(fab).to_be_visible()
+    fab.click()
+    panel = page.locator("#ask[role=dialog]")
+    expect(panel).to_be_visible()
+    expect(page.locator("#agent-input")).to_be_focused()
+    expect(page.locator(".agent-log .msg.bot").first).to_contain_text(PREF)
+    page.keyboard.press("Escape")
+    expect(panel).to_be_hidden()
+    expect(fab).to_be_focused()
+
+
+def test_agent_text_question_and_follow_up(browser):
+    page = open_page(browser, "index.html", NO_SPEECH)
+    page.click(".agent-fab")
+    a = agent_ask(page, "Who was his previous employer?")
+    expect(a).to_contain_text("Work experience · from resume")
+    expect(a).to_contain_text("most recent employer is Pulse Data Labs")
+    b = agent_ask(page, "What were the results there?")
+    expect(b).to_contain_text("no measured figures for this role")
+    assert "10+" not in b.inner_text()
+    # suggestion chips continue the conversation
+    page.locator(".agent-chips .chip", has_text="What did he do at Teknip").click()
+    expect(page.locator(".agent-log .msg.bot").last).to_contain_text("client MITIE")
+    href = page.locator(".agent-log .msg.bot").last.locator("a", has_text="View resume").get_attribute("href")
+    assert href.endswith("resume.html")
+
+
+def test_agent_voice_question_is_spoken(browser):
+    page = open_page(browser, "index.html", "window.__srMode='speak'; window.__phrase='Is he open to remote roles?';" + FAKE_SR, FAKE_TTS)
+    page.wait_for_timeout(300)
+    assert page.evaluate("window.__rec.length") == 0  # no microphone before a click
+    page.click(".agent-fab")
+    page.click("[data-agent-mic]")
+    expect(page.locator(".agent-log .msg.user").last).to_have_text("Is he open to remote roles?")
+    expect(page.locator(".agent-log .msg.bot").last).to_contain_text(PREF)
+    page.wait_for_function("window.__spoken.length > 0")
+    assert PREF in spoken(page)
+    assert page.evaluate("window.__rec[0].lang") == "en-US"
+
+
+def test_agent_hands_free_follow_up(browser):
+    page = open_page(browser, "index.html", "window.__srMode='speak'; window.__phrase='Explain the AKS delivery platform';" + FAKE_SR, FAKE_TTS)
+    page.click(".agent-fab")
+    page.check("[data-agent-handsfree]")
+    page.click("[data-agent-mic]")
+    expect(page.locator(".agent-log .msg.bot").last).to_contain_text("AKS Delivery Platform", timeout=10000)
+    page.evaluate("window.__phrase='What tools does it use?'")
+    # after the spoken answer ends, the mic re-opens for the follow-up without another click
+    expect(page.locator(".agent-log .msg.user").nth(1)).to_have_text("What tools does it use?", timeout=20000)
+    second = page.locator(".agent-log .msg.bot").nth(2)
+    expect(second).to_contain_text("Tools and services: Azure Pipelines")
+    assert "Problem" not in second.inner_text()
+    page.click("[data-agent-close]")  # closing stops listening and audio
+
+
+def test_explain_this_project(browser):
+    page = open_page(browser, "projects/azure-hub-spoke-terraform.html", FAKE_TTS)
+    page.click("[data-explain]")
+    msg = page.locator(".agent-log .msg.bot").last
+    expect(msg).to_contain_text("Guided tour · scripted from the case study")
+    for h in ("Problem:", "Architecture:", "Tools:", "Implementation:", "Documented outcome:"):
+        expect(msg).to_contain_text(h)
+    expect(msg).to_contain_text("not an employer result")
+    page.wait_for_function("window.__spoken.length > 0")
+    assert spoken(page).startswith("Guided tour of Azure Hub-and-Spoke")
+    home_page = open_page(browser, "index.html", NO_SPEECH)
+    assert home_page.locator("[data-explain]").count() == 6
+
+
+def test_agent_reports_missing_information(browser):
+    page = open_page(browser, "index.html", NO_SPEECH)
+    page.click(".agent-fab")
+    r = agent_ask(page, "What is his salary expectation?")
+    expect(r).to_contain_text("Not in this portfolio")
+    expect(r).to_contain_text("I don't have that information")
+
+
+def test_agent_uses_endpoint_and_falls_back(browser):
+    set_ep = """new MutationObserver((m, o) => { if (document.body) { document.body.setAttribute('data-agent-endpoint', 'https://agent.example.test/ask'); o.disconnect(); } })
+                .observe(document, {childList: true, subtree: true});"""
+    page = open_page(browser, "index.html", NO_SPEECH, set_ep)
+    seen = []
+    def ok(route):
+        seen.append(route.request.post_data_json)
+        route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                      body='{"answer": "From his resume: Pulse Data Labs, client URUS."}')
+    page.route("https://agent.example.test/ask", ok)
+    page.click(".agent-fab")
+    expect(page.locator("[data-agent-mode]")).to_have_text("AI answers grounded in the resume and case studies")
+    a = agent_ask(page, "Where did he work last?")
+    expect(a).to_contain_text("AI answer · grounded in portfolio content")
+    expect(a).to_contain_text("From his resume: Pulse Data Labs")
+    assert seen[0]["question"] == "Where did he work last?"
+    page.unroute("https://agent.example.test/ask")
+    page.route("https://agent.example.test/ask", lambda r: r.fulfill(status=502, body="", headers={"Access-Control-Allow-Origin": "*"}))
+    b = agent_ask(page, "Is he open to remote roles?")
+    expect(b).to_contain_text("The AI service didn't respond")
+    expect(b).to_contain_text(PREF)
+
+
+def test_agent_on_phone(browser):
+    page = open_page(browser, "index.html", NO_SPEECH, viewport={"width": 375, "height": 740}, is_mobile=True, has_touch=True)
+    page.click(".menu-toggle")
+    page.click("#site-nav .nav-ask")
+    panel = page.locator("#ask")
+    expect(panel).to_be_visible()
+    agent_ask(page, "Explain the SRE lab")
+    box = panel.bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 375.5 and box["y"] >= 0, box
+    assert page.evaluate("document.documentElement.scrollWidth") <= 375
+    expect(page.locator("#agent-input")).to_be_in_viewport()

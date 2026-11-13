@@ -33,11 +33,11 @@ test("production question separates work experience from the lab", () => {
 
 test("suggested questions cover experience, delivery, rollback, incident and availability", () => {
   assert.deepStrictEqual(data.samples.slice(0, 5), [
-    "What Azure DevOps work has Srinivasa done in production?",
-    "How is the delivery pipeline designed?",
+    "What did he do at Pulse Data Labs?",
+    "Explain the AKS Delivery Platform project",
     "How does the AKS rollback work?",
     "Show me the SRE incident demo",
-    "Is he available for remote work?"]);
+    "Is he open to remote roles?"]);
 });
 
 test("architecture and resume questions link to the right pages", () => {
