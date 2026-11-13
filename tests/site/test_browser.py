@@ -195,8 +195,8 @@ def test_hero_actions_and_outcomes(browser):
     assert hero.locator(".cta-secondary .btn.primary").count() == 0
     assert page.locator("[data-tour-start]").count() == 1
     assert "Senior Azure DevOps Engineer" not in hero.locator(".lead").inner_text()
-    # the hero offers View Resume; the DOCX download lives on the resume page and in Contact
-    assert hero.locator("[data-resume-download]").count() == 0
+    # the resume is view-only: no download links anywhere on the home page
+    assert page.locator("a[download], [data-resume-download]").count() == 0
     assert page.locator("a[href*='linkedin']").count() == 0
     out = page.locator(".outcomes")
     expect(out).to_contain_text("Professional experience")
@@ -503,25 +503,18 @@ def test_resume_page(browser):
     page.click(".cta [data-cta=resume]")
     expect(page).to_have_url(re.compile(r"resume\.html$"))
     expect(page.locator("#site-nav a[aria-current=page]")).to_have_text("Resume")
-    frame = page.locator("iframe.pdf-frame")
-    src = frame.get_attribute("src")
-    assert src.startswith("./assets/resume/") and ".pdf#toolbar=0" in src
-    assert (SITE / "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf").stat().st_size > 10000
+    # view-only: page images, no PDF frame, no download link, no DOCX/PDF published
+    assert page.locator("iframe, embed, object").count() == 0
     imgs = page.locator(".pdf-pages img")
     expect(imgs).to_have_count(3)
-    # one download link, to the final master DOCX (the same file uploaded to Naukri)
-    links = page.locator("a[download]")
-    assert links.count() == 1
-    href = links.first.get_attribute("href")
-    assert href.endswith("assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx"), href
-    assert (SITE / "assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx").read_bytes() == \
-        (SITE.parent / "site/static/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx").read_bytes()
+    expect(imgs.first).to_be_visible()
+    assert page.locator("a[download]").count() == 0
+    assert not list(SITE.glob("assets/resume/*.docx")) and not list(SITE.glob("assets/resume/*.pdf"))
     heads = [h.text_content() for h in page.locator("article.sr-only h3").all()]
     assert heads[0].startswith("Senior DevOps Engineer") and len(heads) == 4
-    # phones: page images instead of the PDF frame
+    # phones: the same page images
     m = browser.new_page(viewport={"width": 390, "height": 844})
     m.goto(BASE + "resume.html")
-    expect(m.locator("iframe.pdf-frame")).to_be_hidden()
     expect(m.locator(".pdf-pages img").first).to_be_visible()
     m.wait_for_function("[...document.querySelectorAll('.pdf-pages img')].slice(0,1).every(i => i.complete && i.naturalWidth > 1000)")
     assert m.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
