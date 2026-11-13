@@ -89,7 +89,7 @@ jobs:
           node-version: "22"
       - run: pip install jinja2 pytest playwright
       - run: python site/build_site.py
-      - run: node --test tests/site/kb.test.js
+      - run: node --test tests/site/kb.test.js tests/site/agent.test.js
       - name: Browser tests (Chrome)
         run: |
           python -m http.server 8765 --directory _site &
