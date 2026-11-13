@@ -8,7 +8,7 @@ const read = (f) => JSON.parse(fs.readFileSync(path.join(__dirname, "../../_site
 const data = read("agent.json");
 const kb = read("knowledge.json");
 const fresh = () => Core.create(data, kb);
-const PREF = "Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles.";
+const PREF = "Open to fully remote Senior Azure DevOps Engineer, Site Reliability Engineer (SRE) and Azure Infrastructure Engineer roles only.";
 
 test("grounding data lists Pulse Data Labs first, as on the resume", () => {
   assert.strictEqual(data.roles[0].company, "Pulse Data Labs");
@@ -43,7 +43,7 @@ test("remote-only preference is stated the same way everywhere", () => {
   for (const q of ["Is he open to remote roles?", "Would he relocate for an onsite job?", "How can I contact him?"]) {
     assert.ok(fresh().ask(q).text.includes(PREF), q);
   }
-  assert.match(fresh().ask("Would he relocate for an onsite job?").text, /remote-only roles/);
+  assert.match(fresh().ask("Would he relocate for an onsite job?").text, /fully remote roles only/);
 });
 
 test("explain this project covers problem, architecture, tools, implementation and outcome", () => {

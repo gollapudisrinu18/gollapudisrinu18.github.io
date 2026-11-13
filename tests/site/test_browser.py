@@ -123,7 +123,7 @@ def test_diagrams_render_in_browser(browser):
 # ---------------- portfolio redesign: tour, architecture, case studies ----------------
 WELCOME = ("Welcome to Srinivasa\u2019s portfolio. Explore his Azure DevOps and SRE experience, view his resume, "
            "take a short tour of the project architectures, or ask the portfolio a question. "
-           "He is open to remote-only Senior Azure DevOps Engineer and SRE roles.")
+           "He is open to fully remote Azure DevOps, SRE and Azure Infrastructure Engineer roles only.")
 HAS_RESUME = (SITE / "resume.html").exists()
 SLUGS = ["aks-delivery-platform", "aks-observability-sre-lab", "azure-hub-spoke-terraform",
          "azure-devsecops-supply-chain", "azure-functions-event-processing", "azure-dr-restore-drill"]
@@ -185,8 +185,8 @@ def test_navigation_is_compact(browser):
 def test_hero_actions_and_outcomes(browser):
     page = home(browser, NO_SPEECH)
     hero = page.locator(".hero")
-    expect(hero.locator(".headline")).to_have_text("Senior Azure DevOps Engineer | Site Reliability Engineer (SRE)")
-    for fact in ("11+ years in IT", "Immediate joiner", "Remote only", "Bangalore, India"):
+    expect(hero.locator(".headline")).to_have_text("Senior Azure DevOps Engineer | Site Reliability Engineer (SRE) | Azure Infrastructure Engineer")
+    for fact in ("11+ years in IT", "Immediate joiner", "Fully remote only", "Bangalore, India"):
         expect(hero.locator(".facts")).to_contain_text(fact)
     primaries = [b.inner_text() for b in hero.locator(".cta-primary .btn.primary").all()]
     assert primaries == (["View Projects", "View Resume"] if HAS_RESUME else ["View Projects"])
@@ -195,7 +195,8 @@ def test_hero_actions_and_outcomes(browser):
     assert hero.locator(".cta-secondary .btn.primary").count() == 0
     assert page.locator("[data-tour-start]").count() == 1
     assert "Senior Azure DevOps Engineer" not in hero.locator(".lead").inner_text()
-    assert page.locator("text=Download Resume").count() == 0
+    # the hero offers View Resume; the DOCX download lives on the resume page and in Contact
+    assert hero.locator("[data-resume-download]").count() == 0
     assert page.locator("a[href*='linkedin']").count() == 0
     out = page.locator(".outcomes")
     expect(out).to_contain_text("Professional experience")
@@ -208,7 +209,7 @@ def test_hero_actions_and_outcomes(browser):
     for metric in ("10+", "45%", "Days → hours"):
         assert metric not in out.inner_text()
     # Remote-only preference is visible in the hero and in the contact section, worded the same.
-    pref = "Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles."
+    pref = "Open to fully remote Senior Azure DevOps Engineer, Site Reliability Engineer (SRE) and Azure Infrastructure Engineer roles only."
     expect(hero.locator("[data-remote-pref]")).to_have_text(pref)
     expect(page.locator("#contact [data-remote-pref]")).to_have_text(pref)
     # Experience section lists Pulse Data Labs first, with the MITIE metrics staying on Teknip Technology.
@@ -508,9 +509,13 @@ def test_resume_page(browser):
     assert (SITE / "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf").stat().st_size > 10000
     imgs = page.locator(".pdf-pages img")
     expect(imgs).to_have_count(3)
-    # the PDF itself (or its page images) is the only visible resume; no download button
-    assert page.locator("a[download], a[href$='.pdf'], a[href$='.docx']").count() == 0
-    assert "Download" not in page.locator("main").inner_text()
+    # one download link, to the final master DOCX (the same file uploaded to Naukri)
+    links = page.locator("a[download]")
+    assert links.count() == 1
+    href = links.first.get_attribute("href")
+    assert href.endswith("assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx"), href
+    assert (SITE / "assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx").read_bytes() == \
+        (SITE.parent / "site/static/assets/resume/Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx").read_bytes()
     heads = [h.text_content() for h in page.locator("article.sr-only h3").all()]
     assert heads[0].startswith("Senior DevOps Engineer") and len(heads) == 4
     # phones: page images instead of the PDF frame
@@ -539,7 +544,7 @@ def test_phone_diagrams_are_readable(browser):
 
 
 # ---------------- Ask the Portfolio voice agent ----------------
-PREF = "Open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles."
+PREF = "Open to fully remote Senior Azure DevOps Engineer, Site Reliability Engineer (SRE) and Azure Infrastructure Engineer roles only."
 
 
 def open_page(browser, rel, *scripts, **ctx):
