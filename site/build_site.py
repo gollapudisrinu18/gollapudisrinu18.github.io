@@ -493,7 +493,8 @@ def main():
 
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
-    shutil.copytree(STATIC, OUT, ignore=shutil.ignore_patterns("*.sha"))
+    # The resume is view-only on the site: the DOCX and PDF are never published, only page images.
+    shutil.copytree(STATIC, OUT, ignore=shutil.ignore_patterns("*.sha", "*.docx", "*.pdf"))
     os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
     with open(os.path.join(OUT, "data", "knowledge.json"), "w", encoding="utf-8") as fh:
         fh.write(kb_json)
@@ -508,10 +509,7 @@ def main():
             with open(os.path.join(d, name), "rb") as fh:
                 h.update(fh.read())
     env.globals["v"] = h.hexdigest()[:10]
-    docx_name = "Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx"
-    resume_docx = f"assets/resume/{docx_name}" if os.path.exists(os.path.join(STATIC, "assets", "resume", docx_name)) else None
     common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": kb["samples"],
-              "resume_docx": resume_docx, "resume_updated": "13 Nov 2026",
               "welcome": extra["welcome"], "resume": resume,
               "agent_endpoint": cfg.get("agent_endpoint", "")}
 
@@ -550,11 +548,10 @@ def main():
         write(f"demos/{pr['slug']}.html", "demo.html", p=pr, nav="projects")
     if resume:
         rdir = os.path.join(STATIC, "assets", "resume")
-        pdf = "assets/resume/Srinivasa_Rao_Gollapudi_Resume.pdf"
         pages = sorted(f"assets/resume/{f}" for f in os.listdir(rdir) if f.startswith("resume-page-"))
-        if not os.path.exists(os.path.join(STATIC, pdf)) or not pages:
-            sys.exit("resume.json exists but the resume PDF or its page images are missing in site/static/assets/resume")
-        write("resume.html", "resume.html", nav="resume", resume_pdf=pdf, resume_pages=pages)
+        if not pages:
+            sys.exit("resume.json exists but the resume page images are missing in site/static/assets/resume")
+        write("resume.html", "resume.html", nav="resume", resume_pages=pages)
     write("404.html", "404.html")
     with open(os.path.join(OUT, ".nojekyll"), "w") as fh:
         fh.write("")
