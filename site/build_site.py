@@ -119,8 +119,8 @@ def links_for(cfg, project):
     }
 
 
-REMOTE = ("He is open to remote-only Senior Azure DevOps Engineer and Site Reliability Engineer (SRE) roles "
-          "and can join immediately.")
+REMOTE = ("He is open to fully remote Senior Azure DevOps Engineer, Site Reliability Engineer (SRE) and Azure "
+          "Infrastructure Engineer roles only, is currently not working and can join immediately.")
 
 
 def contact_entry(resume, email):
@@ -370,7 +370,8 @@ def build_agent_data(cfg, content, projects, resume, arch):
                 if b.get("type") == "role":
                     org = [x.strip() for x in b["org"].split("|")]
                     client = next((x.split(":", 1)[1].strip() for x in org if x.lower().startswith("client")), "")
-                    roles.append({"title": b["title"], "company": org[0], "location": org[1] if len(org) > 2 else "",
+                    location = next((x for x in org[1:] if not x.lower().startswith("client")), "")
+                    roles.append({"title": b["title"], "company": org[0], "location": location,
                                   "client": client, "dates": b["dates"], "environment": b.get("env", ""),
                                   "points": [i for g in b["groups"] for i in g["items"]],
                                   "source": "resume"})
@@ -507,7 +508,10 @@ def main():
             with open(os.path.join(d, name), "rb") as fh:
                 h.update(fh.read())
     env.globals["v"] = h.hexdigest()[:10]
+    docx_name = "Srinivasa_Rao_Gollapudi_Azure_DevOps_SRE_Resume_Final.docx"
+    resume_docx = f"assets/resume/{docx_name}" if os.path.exists(os.path.join(STATIC, "assets", "resume", docx_name)) else None
     common = {"cfg": cfg, "profile": content["profile"], "projects": projects, "samples": kb["samples"],
+              "resume_docx": resume_docx, "resume_updated": "13 Nov 2026",
               "welcome": extra["welcome"], "resume": resume,
               "agent_endpoint": cfg.get("agent_endpoint", "")}
 
